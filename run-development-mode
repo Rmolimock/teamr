@@ -1,0 +1,7 @@
+#!/bin/bash
+# setup env for Teamr and run flask in development mode
+
+export FLASK_APP=teamr # name of app directory
+export FLASK_ENV=development
+flask init-db
+flask run
