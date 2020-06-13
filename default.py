@@ -1,4 +1,87 @@
 #!/usr/bin/env python3
+class Requirement():
+    """ Requirement class """
+    def __init__(self):
+        self.__conditions = []
+        self.__operator = ''
+    @property
+    def operator(self):
+        return self.__operator
+    @property
+    def conditions(self):
+        return self.__conditions
+    @conditions.setter
+    def conditions(self, value):
+        if not type(value) == str or type(value) == list:
+            return False
+        self.__conditions = value
+    @operator.setter
+    def operator(self, value):
+        if not type(value) == str:
+            return False
+        self.__operator = value
+    def create(self, operator, conditions):
+        """ create a single rule """
+        if not type(operator) == str:
+            print('operator must be a string')
+            return False
+        if not type(conditions) == list:
+            if not type(conditions) == Requirement:
+                if not type(conditions) == str:
+                    print('conditions must be strings or Requirement objects')
+                    return False
+            self.__conditions = [conditions]
+            self.__operator = operator
+            return True
+        for c in conditions:
+            if not type(c) == str and not type(c) == Requirement:
+                print('conditions must be strings or Requirement objects')
+                return False
+        self.__conditions = conditions
+        self.__operator = operator
+    def validate(self, auth):
+        """ validate all requirements for action """
+        if self.operator == 'and':
+            return self.and_operator(auth)
+        if self.operator == 'or':
+            return self.or_operator(auth)
+    def and_operator(self, auth):
+        member = auth['member']
+        subject = auth['subject']
+        action = auth['action']
+        parameters = auth['parameters']
+        for condition in self.conditions:
+            if type(condition) == str:
+                    # something like:
+                    #   'member.uid == 123'
+                    # or:
+                    #   '"arg" in parameters'
+                    #   'parameters[arg] == 987
+                if not eval(condition):
+                    return False
+            elif type(condition) == Requirement:
+                if not condition.validate(auth):
+                    return False
+        return True
+    def or_operator(self, auth):
+        member = auth['member']
+        subject = auth['subject']
+        action = auth['action']
+        parameters = auth['parameters']
+        for condition in self.conditions:
+            if type(condition) == str:
+                if eval(condition):
+                    return True
+            elif type(condition) == Requirement:
+                if condition.validate(auth):
+                    return True
+            return False
+
+
+
+
+
+
 class Member():
     def __init__(self, name):
         from uuid import uuid4
@@ -62,7 +145,7 @@ class Member():
                 action = action[:-1]
         return action
     # methods that handle Member authorities
-    def has_authority(self, action, uid):
+    def has_authority(self, action, uid, parameters=None):
         """
         check if member has the authority to perform an action on the given
         uid, and if all requirements are met.
@@ -74,6 +157,7 @@ class Member():
         action = self.format_action(action)
         try:
             # check if action is a valuid function for member
+            # eval should be safe here because format_action removes any () 
             eval('self.' + action)
         except AttributeError:
             print(self.name + ' does not have that method')
@@ -86,10 +170,13 @@ class Member():
             return False
         if action not in self.authority_over[uid]:
             return False
-        for requirement in self.authority_over[uid][action]:
-            print(requirement)
-            if not requirement:
-                return False
+        requirement = self.authority_over[uid][action]
+        auth = {'member': self, 
+                 'subject': uid,
+                 'action': action,
+                 'parameters': parameters}
+        if not requirement.validate(auth):
+            return False
         return action
     def grant_authority(self, action, subject, requirements=False):
         """
