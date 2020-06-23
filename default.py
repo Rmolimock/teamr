@@ -154,21 +154,27 @@ class Member():
         for auth in Authorities:
             if (auth.action == action and self.id in auth.over_whom
                and requirement.is_same(auth.requirement)):
+                added = []
                 print('Authority already exists: ', auth.id)
                 if type(weilded_by) == list:
                     for each in weilded_by:
-                        if not each.id in auth.weilded_by:
-                            auth.weilded_by.append(each.id)
-                            print(Member.members[each].name, 'added to weilded_by')
-                            return True
-                        else:
-                            print(Member.members[each].name, 'already has that auth')
-                            return False
+                        if type(each) == str:
+                            if not each in auth.weilded_by:
+                                auth.weilded_by.append(each)
+                                added.append(each)
+                                print(Member.members[each].name, 'added to weilded_by')
+                            else:
+                                print(Member.members[each].name, 'already has that auth')
+                        elif type(each) == Member:
+                            if not each.id in auth.weilded_by:
+                                auth.weilded_by.append(each.id)
+                                added.append(each.id)
+                                print(each.name, 'added to weilded_by')
                 elif type(weilded_by) == Member:
                     if not weilded_by.id in auth.weilded_by:
                         auth.weilded_by.append(weilded_by.id)
+                        added.append(weilded_by.id)
                         print(weilded_by.name, 'added to weilded_by')
-                        return True
                     else:
                         print(weilded_by.name, 'already has that auth')
                         return False
@@ -176,10 +182,12 @@ class Member():
                     if not weilded_by in auth.weilded_by:
                         print(Member.members[weilded_by].name, 'added to weilded_by')
                         auth.weilded_by.append(weilded_by)
-                        return True
+                        added.append(weilded_by)
                     else:
                         print(Member.members[weilded_by].name, 'already has that auth')
                         return False
+                if len(added) > 0:
+                    return auth
         auth = Authority(self.id)
         auth.action = action
         auth.grantors = [self.id]
@@ -207,6 +215,28 @@ class Member():
                 missing_weilded_by = False
                 new_overs = False
                 missing_overs = False
+                if not type(weilded_by) == list:
+                    if not type(weilded_by) == str:
+                        if not type(weilded_by) == Member:
+                            return False
+                        weilded_by = weilded_by.id
+                    weilded_by = [weilded_by]
+                if not type(over_whom) == list:
+                    if not type(over_whom) == str:
+                        if not type(over_whom) == Member:
+                            return False
+                        over_whom = over_whom.id
+                    over_whom = [over_whom]
+                for each in weilded_by:
+                    if type(each) == Member:
+                        each = each.id
+                    elif not type(each) == str:
+                        return False
+                for each in over_whom:
+                    if type(each) == Member:
+                        each = each.id
+                    elif not type(each) == str:
+                        return False
                 for new in weilded_by:
                     if not new in auth.weilded_by:
                         new_weilded_by = True
@@ -220,12 +250,39 @@ class Member():
                     if not existing in over_whom:
                         missing_overs = True
                 if new_weilded_by and not new_overs and not missing_overs:
-                    for each in weilded_by:
-                        auth.weilded_by.append(each)
-                    return auth
+                    if type(weilded_by) == list:
+                        for each in weilded_by:
+                            if type(each) == Member:
+                                if not each in auth.weilded_by:
+                                    auth.weilded_by.append(each.id)
+                                else:
+                                    print(each.name, 'already has that auth')
+                            if type(each) == str:
+                                if not each in auth.weilded_by:
+                                    auth.weilded_by.append(each)
+                                else:
+                                    print(Member.members[each].name, 'already has that auth')
+                        return auth
+                    elif type(weilded_by) == str:
+                        auth.weilded_by.append(weilded_by)
+                    elif type(weilded_by) == Member:
+                        auth.weilded_by.append(weilded_by.id)
                 elif new_overs and not new_weilded_by and not missing_weilded_by:
-                    for each in over_whom:
-                        auth.over_whom.append(each)
+                    if type(over_whom) == list:
+                        for each in over_whom:
+                            if type(each) == str:
+                                if not each in auth.over_whom:
+                                    auth.over_whom.append(each)
+                                else:
+                                    print(Member.members[each].name, 'already has that auth')
+                            if type(each) == Member:
+                                auth.over_whom.append(each.id)
+                    elif type(over_whom) == str:
+                        auth.over_whom.append(over_whom)
+                    elif type(over_whom) == Member:
+                        auth.over_whom.append(over_whom.id)
+                    return auth
+                if not new_overs and not new_weilded_by:
                     return auth
         auth = Authority(self.id)
         auth.action = 'grant_authority_over_other'
@@ -233,11 +290,31 @@ class Member():
         auth.grantors = [self.id]
         auth.requirement = requirement
         auth.over_whom = []
-        for each in over_whom:
-            auth.over_whom.append(each)
+        if type(over_whom) == list:
+            for each in over_whom:
+                if type(each) == str:
+                    auth.over_whom.append(each)
+                elif type(each) == Member:
+                    auth.over_whom.append(each.id)
+                else:
+                    print(each, 'is not neither a member not id')
+        elif type(over_whom) == Member:
+            auth.over_whom.append(over_whom.id)
+        elif type(over_whom) == str:
+            auth.over_whom.append
         auth.weilded_by = []
-        for each in weilded_by:
-            auth.weilded_by.append(each)
+        if type(weilded_by) == list:
+            for each in weilded_by:
+                if type(each) == str:
+                    auth.weilded_by.append(each)
+                if type(each) == Member:
+                    auth.weilded_by.append(each.id)
+                else:
+                    print(each, 'is not neither a member not id')
+        elif type(weilded_by) == str:
+            auth.weilded_by.append(weilded_by)
+        elif type(weilded_by) == Member:
+            auth.weilded_by.append(weilded_by.id)
         Authorities.append(auth)
         return auth
     def grant_authority_over_other(self, action, weilded_by, over_whom, requirement):
