@@ -52,7 +52,7 @@ class TestRequirement(unittest.TestCase):
 class TestMember(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.grant_f, self.take_f = Member('user1'), Member('user2')
+        self.grant_f, self.take_f = Member('grant_f'), Member('take_f')
         self.no_f = Member('user3')
         self.r = Requirement()
         conditions = ['True', 'p.get("x") < 10']
@@ -80,7 +80,7 @@ class TestMember(unittest.TestCase):
         self.assertTrue(self.user1.grant_authority_over_self('f', self.u3, self.r))
         self.assertTrue(self.u3.has_authority(p))
     def test_grant_authority_again(self):
-        """ attemp to grant an authority already granted over self """
+        """ attemp to grant an authority already grantable over self """
         self.assertFalse(self.grant_f.grant_authority_over_self('f', self.take_f.id, self.r))
     def test_grant_authority_new_weilded_by(self):
         """ grant an existing authority to a new weilded_by """
@@ -97,23 +97,12 @@ class TestMember(unittest.TestCase):
         self.u1, self.u2, self.u3 = Member('u1'), Member('u2'), Member('u3')
         self.meta_grantor = Member('meta_grantor')
         self.meta_receiver = Member('meta_receiver')
-        self.ult_receiver = Member('ult_receiver')
-        self.assertTrue(self.meta_grantor.grant_meta_authority_to_others('f', self.meta_receiver, [self.u1.id, self.u2.id], self.r))
-        self.assertTrue(self.meta_grantor.grant_meta_authority_to_others('f', self.meta_receiver, [self.u1.id, self.u2.id, self.u3.id], self.r))
+        self.assertTrue(self.meta_grantor.grant_meta_authority_over_self('f', self.meta_receiver, [self.u1.id, self.u2.id], self.r))
+        self.assertTrue(self.meta_grantor.grant_meta_authority_over_self('f', self.meta_receiver, [self.u1.id, self.u2.id, self.u3.id], self.r))
         p = {'action': 'f', 'over_whom': self.meta_grantor.id}
         self.assertFalse(self.meta_receiver.has_authority(p))
-        print("\nACTIONS:\n")
-        for auth in Authorities:
-            print('action')
-            print(auth.action)
-            print('over whom')
-            print(auth.over_whom)
-            print('weilded by')
-            print(auth.weilded_by)
-            print('original grantor')
-            print(auth.original_grantor)
-            print('granted action')
-            print(auth.granted_action if hasattr(auth, 'granted_action') else 'no granted action')
-            print()
-        for k, mem in Member.members.items():
-            print(mem.name, '\n', mem.id)
+        self.r.setup('and', ['True'])
+        self.assertTrue(self.meta_receiver.has_authority_grant_over_other('f', self.u1.id, self.meta_grantor.id, self.r))
+        self.assertFalse(self.u1.has_authority(p))
+        self.assertTrue(self.meta_receiver.grant_authority_over_other('f', [self.u1.id, self.u2.id], self.meta_grantor, self.r))
+        self.assertTrue(self.u1.has_authority(p))
