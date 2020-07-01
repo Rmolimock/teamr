@@ -1,7 +1,5 @@
 import unittest
-from models import Member, Authority, Requirement, Authorities
-
-
+from models import Personhood, Authority, Requirement, Team
 
 class TestRequirement(unittest.TestCase):
     def setUp(self):
@@ -49,60 +47,87 @@ class TestRequirement(unittest.TestCase):
 
 
 
-class TestMember(unittest.TestCase):
+class TestPersonhood(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.grant_f, self.take_f = Member('grant_f'), Member('take_f')
-        self.no_f = Member('user3')
+        self.a, self.b, self.c = Personhood('a'), Personhood('b'), Personhood('c')
         self.r = Requirement()
         conditions = ['True', 'p.get("x") < 10']
         # be sure to add variables like x with p.get and inner quotes
         self.r.setup('and', conditions)
     def test_grant_authority(self):
         """ grant another user the authority to perform func on self """
-        self.assertTrue(self.grant_f.grant_authority_over_self('f', self.take_f.id, self.r).id)
+        self.assertTrue(self.a.grant_authority_over_self('f', self.b.id, self.r))
     def test_has_authority(self):
-        self.grant_f, self.take_f, self.no_f = Member('grant_f'), Member('take_f'), Member('no_f')
-        p = {'action': 'f', 'over_whom': self.take_f.id, 'x': 5}
-        print(self.grant_f.id, self.take_f.id, self.no_f.id)
-        self.assertTrue(self.take_f.has_authority(p))
-        self.assertFalse(self.no_f.has_authority(p))
-        p = {'action': 'other', 'over_whom': self.grant_f.id, 'x': 5}
-        self.assertFalse(self.take_f.has_authority(p))
+        p = {'action': 'f', 'over_whom': self.b.id, 'x': 5}
+        print(self.a.id, self.b.id, self.c.id)
+        self.assertTrue(self.b.has_authority(p))
+        self.assertFalse(self.c.has_authority(p))
+        p = {'action': 'other', 'over_whom': self.a.id, 'x': 5}
+        self.assertFalse(self.b.has_authority(p))
     def test_use_granted_authority(self):
-        self.assertTrue(self.take_f.f(self.grant_f.id, 5))
-        self.u1, self.u2, self.u3 = Member('u1'), Member('u2'), Member('u3')
-        self.user1 = Member('user1')
-        self.assertTrue(self.user1.grant_authority_over_self('f', [self.u1, self.u2.id], self.r))
-        p = {'action': 'f', 'over_whom': self.user1.id, 'x': 5}
-        self.assertTrue(self.u2.has_authority(p))
-        self.assertFalse(self.u3.has_authority(p))
-        self.assertTrue(self.user1.grant_authority_over_self('f', self.u3, self.r))
-        self.assertTrue(self.u3.has_authority(p))
+        self.assertTrue(self.b.f(self.a.id, 5))
+        self.assertTrue(self.a.grant_authority_over_self('f', [self.a, self.b.id], self.r))
+        p = {'action': 'f', 'over_whom': self.a.id, 'x': 5}
+        self.assertTrue(self.b.has_authority(p))
+        self.assertFalse(self.c.has_authority(p))
+        self.assertTrue(self.a.grant_authority_over_self('f', self.c, self.r))
+        self.assertTrue(self.c.has_authority(p))
     def test_grant_authority_again(self):
         """ attemp to grant an authority already grantable over self """
-        self.assertFalse(self.grant_f.grant_authority_over_self('f', self.take_f.id, self.r))
+        self.assertFalse(self.a.grant_authority_over_self('f', self.b.id, self.r))
     def test_grant_authority_new_weilded_by(self):
         """ grant an existing authority to a new weilded_by """
-        self.user1 = Member('user1')
-        self.user4 = Member('user4')
-        self.assertTrue(self.user1.grant_authority_over_self('f', self.user4.id, self.r))
-        p = {'action': 'f', 'over_whom': self.user1.id, 'x': 5}
+        self.a = Personhood('a')
+        self.user4 = Personhood('user4')
+        self.assertTrue(self.a.grant_authority_over_self('f', self.user4.id, self.r))
+        p = {'action': 'f', 'over_whom': self.a.id, 'x': 5}
         self.assertTrue(self.user4.has_authority(p))
-        p = {'action': 'f', 'over_whom': self.user1.id, 'x': 15}
+        p = {'action': 'f', 'over_whom': self.a.id, 'x': 15}
         self.assertFalse(self.user4.has_authority(p))
-        p = {'action': 'other', 'over_whom': self.user1.id, 'x': 5}
+        p = {'action': 'other', 'over_whom': self.a.id, 'x': 5}
         self.assertFalse(self.user4.has_authority(p))
     def test_grant_meta_authority(self):
-        self.u1, self.u2, self.u3 = Member('u1'), Member('u2'), Member('u3')
-        self.meta_grantor = Member('meta_grantor')
-        self.meta_receiver = Member('meta_receiver')
-        self.assertTrue(self.meta_grantor.grant_meta_authority_over_self('f', self.meta_receiver, [self.u1.id, self.u2.id], self.r))
-        self.assertTrue(self.meta_grantor.grant_meta_authority_over_self('f', self.meta_receiver, [self.u1.id, self.u2.id, self.u3.id], self.r))
+        self.a, self.b, self.c = Personhood('a'), Personhood('b'), Personhood('c')
+        self.meta_grantor = Personhood('meta_grantor')
+        self.meta_receiver = Personhood('meta_receiver')
+        self.assertTrue(self.meta_grantor.grant_meta_authority_over_self('f', self.meta_receiver, [self.a.id, self.b.id], self.r))
+        self.assertTrue(self.meta_grantor.grant_meta_authority_over_self('f', self.meta_receiver, [self.a.id, self.b.id, self.c.id], self.r))
         p = {'action': 'f', 'over_whom': self.meta_grantor.id}
         self.assertFalse(self.meta_receiver.has_authority(p))
         self.r.setup('and', ['True'])
-        self.assertTrue(self.meta_receiver.has_authority_grant_over_other('f', self.u1.id, self.meta_grantor.id, self.r))
-        self.assertFalse(self.u1.has_authority(p))
-        self.assertTrue(self.meta_receiver.grant_authority_over_other('f', [self.u1.id, self.u2.id], self.meta_grantor, self.r))
-        self.assertTrue(self.u1.has_authority(p))
+        self.assertTrue(self.meta_receiver.has_authority_grant_over_other('f', self.a.id, self.meta_grantor.id, self.r))
+        self.assertFalse(self.a.has_authority(p))
+        self.assertTrue(self.meta_receiver.grant_authority_over_other('f', [self.a.id, self.b.id], self.meta_grantor, self.r))
+        self.assertTrue(self.meta_receiver.grant_authority_over_other('f', self.c, self.meta_grantor, self.r))
+        self.assertTrue(self.a.has_authority(p))
+        self.assertTrue(self.b.has_authority(p))
+        self.assertTrue(self.c.has_authority(p))
+        self.assertTrue(self.c.f(self.meta_grantor.id, 10))
+        self.assertTrue(self.c.grant_meta_authority_over_self('f', self.meta_receiver, [self.a.id, self.b.id], self.r))
+        p = {'action': 'f', 'over_whom': self.c.id}
+        self.assertFalse(self.b.has_authority(p))
+        self.assertTrue(self.meta_receiver.grant_authority_over_other('f', self.b, self.c, self.r))
+        self.assertTrue(self.b.has_authority(p))
+        self.assertFalse(self.b.grant_meta_authority_over_self('grant_meta_authority_over_self', self.meta_receiver, [self.a.id, self.b.id], self.r))
+        self.assertFalse(self.b.grant_meta_authority_over_self('grant_meta_authority_over_self', self.meta_receiver, [self.a.id, self.b.id], self.r))
+        self.assertFalse(self.b.grant_meta_authority_over_self('nonexistent', self.meta_receiver, [self.a.id, self.b.id], self.r))
+        
+
+class TestTeams(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.a, self.b, self.c = Personhood('a'), Personhood('b'), Personhood('c')
+        self.r = Requirement()
+        conditions = ['True', 'over_whom in Team.every["t1"].membership']
+        # be sure to add variables like x with p.get and inner quotes
+        self.r.setup('and', conditions)
+        self.t1, self.t2, self.t3 = Team('t1'), Team('t2'), Team('t3')
+    def test_invitation(self):
+        self.t1.invite_member(self.a)
+        print('a invitations:')
+        print(self.a.invitations)
+        print('members:')
+        self.assertTrue(self.a.request_join_team(self.t1))
+        self.assertTrue(self.c.request_join_team(self.t1.id))
+        print([Personhood.every[each].name for each in self.t1.membership])
