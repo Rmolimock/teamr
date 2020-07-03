@@ -57,7 +57,8 @@ class Requirement():
         Validates true if all conditions are true.
         """
         p = current_parameters
-        p['requirement'] = self
+        if not 'requirement' in p:
+            p['requirement'] = self
         for condition in self.conditions:
             if type(condition) == str:
                 try:
@@ -74,8 +75,8 @@ class Requirement():
         Validates true if any conditions are true.
         """
         p = current_parameters
-        requirement = self
-        p['requirement'] = self
+        if not 'requirement' in p:
+            p['requirement'] = self
         for condition in self.conditions:
             if type(condition) == str:
                 try:
@@ -169,7 +170,7 @@ class Personhood():
         Personhood.every[self.id] = self
         Personhood.nonsharables = ['grant_authority_over_self', 'grant_meta_authority_over_self']
         self.invitations = {}
-    def has_authority(self, parameters):
+    def has_authority_do(self, parameters):
         """ verify user has the authority to perform an action """
         p = parameters
         action = p['action']
@@ -188,6 +189,10 @@ class Personhood():
                 return True
         return False
     def request_join_team(self, team):
+        """
+        requesting to join a team means granting the membership level
+        authorities of that team to that team over self
+        """
         if type(team) == str:
             try:
                 team = Team.every[team]
@@ -196,17 +201,22 @@ class Personhood():
         elif not isinstance(team, Team):
             return False
         p = {'action': 'request_join_team', 'over_whom': team.id}
-        if not self.has_authority(p):
+        if not self.has_authority_do(p):
             return False
+        # if team has already invited self, join team
         if team.id in self.invitations:
             team.membership[self.id] = self
+            
             del self.invitations[team.id]
             return True
+        # otherwise, request to join
         team.invitations[self.id] = self
         return True
-    def f(self, over_whom, x):
+    def f(self, over_whom, x=None):
+        if isinstance(over_whom, Personhood):
+            over_whom = over_whom.id
         p = {'action': 'f', 'over_whom': over_whom, 'x': x}
-        if not self.has_authority(p):
+        if not self.has_authority_do(p):
             print('no auth!')
             return False
         else:
@@ -498,6 +508,7 @@ class Team(Personhood):
         r = Requirement()
         r.setup('and', ['True'])
         auth.requirement = r
+        self.auths_over_members = [] # auths upon which membership is conditional
     def invite_member(self, member):
         if type(member) == str:
             try:
@@ -506,12 +517,62 @@ class Team(Personhood):
                 return False
         elif not isinstance(member, Personhood):
             return False
+        print('one')
+        # if member already requested to join, accept
         if member.id in self.invitations:
+            print('invitation exists')
+            # add member
             self.membership[member.id] = member
+            # delete their previous request to join
             del self.invitations[member.id]
+            added = []
+            for auth in self.auths_over_members:
+                # apply membership authorities to member
+                print('Team authority to:', auth.action)
+                if member.has_authority_grant_from_self(auth.action):
+                    if not member.id == auth.over_whom and not member.id in auth.over_whom:
+                        if type(auth.over_whom) == list:
+                            auth.over_whom.append(member.id)
+                        else:
+                            auth.over_whom = [member.id]
+                        auth.grantors.append(member.id)
+                        added.append(auth)
+                        print(member.name, 'added to weilded_by (hopefully)')
+                else:
+                    print('does not have auth')
+                    for each in added:
+                        for i in range(len(each.over_whom) - 1):
+                            if each[i] == member.id:
+                                del each[i]
+                                return False
+            for role in self.roles:
+                for auth in role.auths_over_team_members:
+                    print('Role authority to:', auth.action)
+                    if not member.id == auth.over_whom and not member.id in auth.over_whom:
+                        if type(auth.over_whom) == list:
+                            auth.over_whom.append(member.id)
+                        else:
+                            auth.over_whom = [member.id]
+                            auth.grantors.append(member.id)
+                            added.append(auth)
+                            print(member.name, 'added to weilded_by (hopefully)')
+                    else:
+                        for each in added:
+                            for i in range(len(each.over_whom) - 1):
+                                if each[i] == member.id:
+                                    del each[i]
+                                    return False
             return True
+        # otherwise, invite member to join
+        print('two')
         member.invitations[self.id] = self
+        print('invitation sent')
+        return True
     def remove_member(self, member):
         del self.membership[member.id]
 
+
+class Role(Team):
+    def __init__(self, name):
+        self.auths_over_team_members = []
 
