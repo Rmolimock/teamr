@@ -141,7 +141,8 @@ class Authority():
             else:
                 print(Personhood.every[auth.weilded_by].name)
             print('original grantor')
-            print('   ', auth.original_grantor)
+            if auth.original_grantor:
+                print('   ', Personhood.every[auth.original_grantor].name)
             print('grantable action')
             print('   ', auth.grantable_action if hasattr(auth, 'grantable_action') else 'no grantable action')
             print('grantors:')
@@ -170,6 +171,36 @@ class Personhood():
         Personhood.every[self.id] = self
         Personhood.nonsharables = ['grant_authority_over_self', 'grant_meta_authority_over_self']
         self.invitations = {}
+        self.teams = {}
+    def revoke_authority(self, action, weilded_by, requirement):
+        """ revoke a previously granted authority """
+        if isinstance(weilded_by, Personhood):
+            weilded_by = weilded_by.id
+        elif not type(weilded_by) == str:
+            print('weilded_by must be a str or instance of Personhood')
+            return False
+        for i in range(len(Authority.every)):
+            auth = Authority.every[i]
+            if (action == auth.action and weilded_by in auth.weilded_by
+               and (self.id in auth.grantors or self.id == auth.original_grantor)
+               and requirement.is_same(auth.requirement)):
+                if self.id == auth.original_grantor or self.id in auth.original_grantor:
+                    del Authority.every[i]
+                    del auth
+                    print('auth deleted')
+                    return True
+                for i in range(len(auth.grantors)):
+                    if auth.grantors[i] == self.id:
+                        del auth.grantors[i]
+                if len(auth.grantors) == 0:
+                    del Authority.every[i]
+                    del auth
+                    return True
+                for i in range(len(auth.over_whom)):
+                    if auth.over_whom[i] == self.id:
+                        del auth.over_whom[i]
+                        return True
+        return False
     def has_authority_do(self, parameters):
         """ verify user has the authority to perform an action """
         p = parameters
@@ -206,7 +237,7 @@ class Personhood():
         # if team has already invited self, join team
         if team.id in self.invitations:
             team.membership[self.id] = self
-            
+            self.teams[team.id] = team
             del self.invitations[team.id]
             return True
         # otherwise, request to join
@@ -474,7 +505,7 @@ class Personhood():
                     return auth
         auth = Authority(over_whom)
         auth.action = action
-        auth.grantors = [over_whom, self.id]
+        auth.grantors = [self.id]
         auth.requirement = requirement
         auth.over_whom = [over_whom]
         auth.weilded_by = []
@@ -508,7 +539,7 @@ class Team(Personhood):
         r = Requirement()
         r.setup('and', ['True'])
         auth.requirement = r
-        self.auths_over_members = [] # auths upon which membership is conditional
+        self.auths_over_members = {} # auths upon which membership is conditional
     def invite_member(self, member):
         if type(member) == str:
             try:
@@ -526,7 +557,7 @@ class Team(Personhood):
             # delete their previous request to join
             del self.invitations[member.id]
             added = []
-            for auth in self.auths_over_members:
+            for auth in self.auths_over_members.values():
                 # apply membership authorities to member
                 print('Team authority to:', auth.action)
                 if member.has_authority_grant_from_self(auth.action):
@@ -562,6 +593,7 @@ class Team(Personhood):
                                 if each[i] == member.id:
                                     del each[i]
                                     return False
+            member.teams[self.id] = self
             return True
         # otherwise, invite member to join
         print('two')
@@ -576,3 +608,16 @@ class Role(Team):
     def __init__(self, name):
         self.auths_over_team_members = []
 
+
+
+"""
+1. user excersises authority on self
+2. user atempts excersise authority over another user
+3. user grants authority to another user
+4. user successfully excersises authority over another user
+5. user grants authority to grant authority to a third user
+6. user grants previously granted authority to a third user
+7. that third user uses authority granted by proxy on first user
+8. requirement for granted authority is changed, demonstrate
+9. requirement for authority to grant is changed, demonstrate
+10"""

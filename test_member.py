@@ -143,7 +143,7 @@ class TestTeams(unittest.TestCase):
         self.auth.weilded_by = self.t1.id
         self.auth.requirement = self.r
         self.auth.over_whom = [self.c.id]
-        self.t1.auths_over_members.append(self.auth)
+        self.t1.auths_over_members[self.auth.id] = self.auth
         Authority.print_every()
         self.a.request_join_team(self.t1)
         self.t1.invite_member(self.a)
