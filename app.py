@@ -8,10 +8,13 @@ from flask import Flask, jsonify, abort, request, render_template
 from flask_cors import (CORS, cross_origin)
 import os
 from views import app_views
+from flask_pymongo import PyMongo
 
 
 # instantiate the app and add cors protection
 app = Flask(__name__)
+app.config["MONGO_URI"] = "mongodb://localhost:27017/myDatabase"
+mongo = PyMongo(app)
 app.register_blueprint(app_views)
 CORS(app, resources={r"/*": {"origins": "*"}})
 auth = Auth()
