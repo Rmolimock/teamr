@@ -1,0 +1,4 @@
+apt-get install inotify-tools
+
+
+sudo service mongod start

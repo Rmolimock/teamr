@@ -1,0 +1,2 @@
+while inotifywait -e close_write *.py; do python3 -m unittest test_member.py; done
+
