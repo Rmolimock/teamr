@@ -1,11 +1,48 @@
-<html>
-    <head>
 
-    </head>
-    <body>
-        Main page
-        <form>
-            yo
+<!doctype html>
+<html>
+<head>
+  <meta>
+    <title>{% block title %}{% endblock %} - Flaskr</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </meta>
+</head>
+
+
+
+
+<body>
+  {% if debug %}
+    <div id="banner-message">
+      {{ debug }}
+    </div>
+  {% endif %}
+<navbar>
+    <div id="logo">
+      <h1><a href="/">#ThePointIsToChangeIt</a></h1>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="{{ url_for('app_views.register') }}">SIGN UP</a>
+        <li><a href="{{ url_for('app_views.login') }}">Log in</a>
+        <form action="{{ url_for('app_views.logout') }}" method="DELETE">
+          <input type="submit" value="Log out">
         </form>
-    </body>
+
+        </ul>
+    </nav>
+</navbar>
+<section class="content">
+  <header>
+    {% block header %}
+    {% endblock %}
+  </header>
+
+  {% block content %}
+  {% endblock %}
+</section>
+</body>
+<footer>
+
+</footer>
 </html>

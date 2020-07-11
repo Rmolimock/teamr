@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-""" DocDocDocDocDocDoc
+"""
+Store api routes in app_views blueprint
 """
 from flask import Blueprint
 

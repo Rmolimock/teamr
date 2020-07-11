@@ -1,47 +1,73 @@
 #!/usr/bin/env python3
-""" Module of Index views
 """
-from flask import jsonify, abort, render_template, url_for, request
+Top level API routes
+"""
+from flask import jsonify, abort, render_template, request
 from api.v1.views import app_views
+from api.v1.views.auth.auth import Auth
+from models import User
 
+
+auth = Auth()
 
 @app_views.route('/status', methods=['GET'], strict_slashes=False)
-def status() -> str:
-    """ GET /api/v1/status
-    Return:
-      - the status of the API
+def status():
+    """
+    ----------------------------
+    Check the status of the API.
+    ----------------------------
+    -> Return: Json response with status message "OK"
     """
     return jsonify({"status": "OK"})
 
 
-@app_views.route('/logout/', methods=['GET'], strict_slashes=False)
-def logout():
-    return render_template('./auth/logout.html')
+@app_views.route('/logout', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+def logout2():
+    response = 'LOGGED OUT'
+    return render_template('./index.html', debug=response)
 
 
-@app_views.route('/login/', methods=['POST'], strict_slashes=False)
-def login_():
-    email = request.form.get("email")
-    password = request.form.get("password")
-    if not email or not password:
-        return render_template('./auth/login.html', error="bad format")
-    return render_template('./base.html')
+@app_views.route('/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+def home():
+    """
+    -----------------------------
+    Check request method and validate user if needed.
+    -----------------------------
+    -> Return: Public landing page or login redirect page.
+    """
+    if request.method == "GET":
+        if request.cookies.get('debug'):
+            return render_template('./index.html', jsonify(request.cookies.get('debug')))
+        return render_template('./index.html')
+    elif request.method == "POST":
+        email, pwd = request.form.get('email'), request.form.get('password')
+        # validate_user returns a userJson if True and ErrorMessage if False.
+        user_or_error = auth.validate_user(email, pwd)
+        if not type(user_or_error) == User:
+            return render_template('./index.html', debug=user_or_error)
+        return render_template('./index.html', user=user_or_error)
 
 
-@app_views.route('/login/', methods=['GET'], strict_slashes=False)
-def login():
-    return render_template('./auth/login.html')
-
-
-@app_views.route('/register/', methods=['GET', 'POST'], strict_slashes=False)
+@app_views.route('/register', methods=['GET', 'POST'], strict_slashes=False)
 def register():
-    from models.base import Base
-    from flask import redirect
-    email = request.form.get("email")
-    password = request.form.get("password")
-    if not email or not password:
-        return render_template('./auth/register.html', error="bad format")
-    u = {'email': email, 'password': password}
-    user = Base(u)
-    fuser = user.to_json()
-    return redirect('/')
+    if request.method == "GET":
+        print("IN HERE")
+        return render_template('./auth/register.html')
+    if request.method == "POST":
+        print("IN HERE YO")
+        email, pwd = request.form.get('email'), request.form.get('password')
+        user = User()
+        user.email = email
+        user.password = pwd
+        user.save_to_db()
+        return render_template('./index.html', debug=(user.id, user.email, user.password))
+
+
+@app_views.route('/login', methods=['GET'], strict_slashes=False)
+def login():
+    pass
+
+
+@app_views.route('/logout', methods=['POST'], strict_slashes=False)
+def logout():
+    pass
