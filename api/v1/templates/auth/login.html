@@ -1,17 +1,12 @@
 <html>
-  <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  </head>
-  <body>
+    <body>
     <a href="/">home</a><br>
-    login<br>
-    <form name="login" action="" method="post">
-      <input type="email" name="email" value="">
-      <input type="password" name="password" value="">
-      <input type="submit" name="submit" value="login">
+        {{ error }}<br>
+        login<br>
+    <form name="login" action='/' method="post">
+        <input type="email" name="email" value="">
+        <input type="password" name="password" value="">
+        <input type="submit" name="submit" value="login">
     </form>
-    <p class="error">
-    {{ error }}
-    </p>
-  </body>
+    </body>
 </html>

@@ -41,16 +41,12 @@ def before():
                              '/api/v1/views/register',
                              '/static/css/*']):
             return None
-        if not auth.session_cookie(request):
+        session = auth.session_cookie(request)
+        if not session:
             abort(401)
-        if not auth.current_user(request):
+        current_user = auth.current_user(session)
+        if not current_user:
             abort(403)
-        request.current_user = auth.current_user(request)
-
-
-@app.route('/', methods=['GET'], strict_slashes=False)
-def home():
-    return redirect('/')
 
 
 # configure what responses various abort() calls generate

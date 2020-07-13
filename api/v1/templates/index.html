@@ -17,12 +17,21 @@
       {{ debug }}
     </div>
   {% endif %}
+  {% if session %}
+    <div id="banner-message">
+      session<br>
+      {{ session }}
+    </div>
+  {% endif %}
 <navbar>
     <div id="logo">
       <h1><a href="/">#ThePointIsToChangeIt</a></h1>
     </div>
     <nav>
       <ul>
+        {% if session %}
+          <li><a href="{{ url_for('app_views.user_page') }}">Profile</a>
+        {% endif %}
         <li><a href="{{ url_for('app_views.register') }}">SIGN UP</a>
         <li><a href="{{ url_for('app_views.login') }}">Log in</a>
         <form action="{{ url_for('app_views.logout') }}" method="DELETE">
@@ -37,7 +46,16 @@
     {% block header %}
     {% endblock %}
   </header>
+  {% for user in all_users %}
+  <strong>{{ user.username }}</strong></br>
+  {{ user.email }}</br>
+  {{ user.password }}</br>
+  {{ user.created_at }}</br>
+  {{ user.updated_at }}</br>
+  <br><br>
 
+
+  {% endfor %}
   {% block content %}
   {% endblock %}
 </section>
