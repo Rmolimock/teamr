@@ -50,24 +50,26 @@ def home():
     """
     print('in views')
     from flask import make_response
+    pics = ['static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg', 'static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg', 'static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg']
     if request.method == "GET":
+        session_id = request.cookies.get('activeUser')
         if request.cookies.get('debug'):
-            return render_template('./index.html', jsonify(request.cookies.get('debug')))
+            return render_template('./index.html',  session=session_id, pics=pics)
         from models import db
         users = User.search()
-        return render_template('./index.html', all_users=users)
+        return render_template('./index.html', all_users=users, session=session_id, pics=pics)
     elif request.method == "POST":
         email, pwd = request.form.get('email'), request.form.get('password')
         # validate_user returns a userJson if True and ErrorMessage if False.
         user_or_error = auth.validate_user(email, pwd)
         print(email, pwd)
-        if type(user_or_error) == str:
+        if not type(user_or_error) == User:
             users = User.search()
-            return render_template('./index.html', debug=user_or_error, all_users=users)
+            return render_template('./index.html', debug=user_or_error, all_users=users, pics=pics)
         user = user_or_error
         session_id = auth.create_session(user.id)
         users = User.search()
-        res = make_response(render_template('./index.html', session=session_id, debug=user.to_json(), all_users=users))
+        res = make_response(render_template('./index.html', session=session_id, debug='signed in as ' + user.username, all_users=users, pics=pics))
         res.set_cookie('activeUser', session_id)
         return res
 
@@ -91,7 +93,8 @@ def register():
         for k, v in user.__dict__.items():
             print(k, v)
         users = User.search()
-        return render_template('./index.html', debug=(user.id, user.email, user.password,), all_users=users)
+        pics = ['static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg', 'static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg', 'static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg']
+        return render_template('./index.html', debug=f'{user.username} has been registered!', all_users=users, pics=pics)
 
 
 @app_views.route('/login', methods=['GET', 'POST'], strict_slashes=False)

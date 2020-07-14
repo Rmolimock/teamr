@@ -4,9 +4,17 @@
         {{ error }}<br>
         login<br>
     <form name="login" action='/' method="post">
-        <input type="email" name="email" value="">
-        <input type="password" name="password" value="">
-        <input type="submit" name="submit" value="login">
+        <fieldset>
+            <legend>LOGIN</legend>
+            <ul>
+                <label for="email">Email: </label>
+                <li><input type="email" name="email" value=""></li>
+                <label for="password">Password: </label>
+                <li><input type="password" name="password" value=""></li>
+                <li><button type="submit" name="register" value="register">SUBMIT</button></li>
+            </ul>
+        
+        </fieldset>
     </form>
     </body>
 </html>

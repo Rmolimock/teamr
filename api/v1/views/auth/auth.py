@@ -36,7 +36,7 @@ class Auth():
         if not type(user_id) == str:
             return None
         timestamp = datetime.now()
-        Auth.session_ids[self.id] = (user_id, timestamp)
+        Auth.session_ids[self.id] = [user_id, timestamp]
         self.save()
         return self.id
 
@@ -48,7 +48,7 @@ class Auth():
         if session_id not in self.session_ids:
             print(2)
             return None
-        if not type(self.session_ids[session_id]) == tuple:
+        if not type(self.session_ids[session_id]) == list:
             print(3)
             return None
         user_id = Auth.session_ids[session_id][0]
@@ -66,6 +66,7 @@ class Auth():
     def current_user(self, session_id):
         """ return a user object from given session id """
         from models import User
+        from datetime import datetime
         user_id = self.user_id_for_session_id(session_id)
         print(user_id, 'user_id')
         if not user_id:
@@ -73,6 +74,7 @@ class Auth():
         user = User.get(user_id)
         if not user:
             return None
+        Auth.session_ids[session_id][1] = datetime.now()
         return user_id
 
     def destroy_session(self, request=None):
@@ -109,18 +111,19 @@ class Auth():
         return True
     def validate_user(self, e: str, p: str) -> TypeVar('User'):
         """ given a username and password, return the User instance """
+        error = 'incorrect login info'
         if not e or not isinstance(e, str):
-            return None
+            return error
         if not p or not isinstance(p, str):
-            return None
+            return error
         # ret None if no user with that email
         # same if that user's pwd is wrong
         email = {"email": e}
         from models import User
         user = User.search(email)
         if not user:
-            return None
-        error = 'incorrect login info'
+            return error
         return user[0] if user[0].is_valid_password(p) else error
+
     def session_cookie(self, request):
         return request.cookies.get('activeUser')

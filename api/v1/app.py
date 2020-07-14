@@ -36,10 +36,13 @@ def before():
                              '/api/v1/unauthorized/',
                              '/api/v1/forbidden/',
                              '/api/v1/views/login/',
+                             '/auth/login',
+                             '/auth/login.html',
+                             '/login',
                              '/logout',
-                             '/register.html',
+                             '/register',
                              '/api/v1/views/register',
-                             '/static/css/*']):
+                             '/static/*']):
             return None
         session = auth.session_cookie(request)
         if not session:

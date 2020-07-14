@@ -1,14 +1,29 @@
 <html>
     <body>
     <a href="/">home</a><br>
-        {{ error }}<br>
-        register<br>
     <form name="register" action='/register' method="post">
-        <input type="email" name="email" value="">
-        <label for="username">Username</label>
-        <input type="text" name="username" value="">
-        <input type="password" name="password" value="">
-        <input type="submit" name="submit" value="register">
+        <fieldset>
+            <legend>
+                <strong>REGISTER</strong>
+            </legend>
+        <ul>
+            <li>
+                <li>
+                    <label for="email">Email: </label>
+                    <input type="email" name="email" value="">
+                </li>
+                <li>
+                    <label for="username">Username: </label>
+                    <input type="text" name="username" value="">
+                </li>
+                <li>
+                    <label for="password">Password: </label>
+                    <input type="password" name="password" value="">
+                </li>
+                <li>
+                    <button type="submit" name="register" value="register">SUBMIT</button>
+                </li>
+        </ul>
+        </fieldset>
     </form>
     </body>
-</html>

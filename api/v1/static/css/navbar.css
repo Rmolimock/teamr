@@ -1,0 +1,285 @@
+                                                         /* MOBILE *\
+===================================================================*/
+:root {
+    /* colors */
+    --background-color: whitesmoke;
+    --midground-color: black;
+    --foreground-color: black;
+    --popup-color: whitesmoke;
+    --selected-color: whitesmoke;
+    --primary-dark: black;
+    --primary-light: white;
+
+    /* font sizes */
+    --font-size-x-sm: 9px;
+    --font-size-sm: 11px;
+    --font-size-med: 14px;
+    --font-size-large: 18px;
+    --font-size-x-large: 32px;
+
+    /* styles */
+    --border-light: 1px solid var(--primary-light);
+    --border-dark: 1px dotted var(--primary-dark);
+    --attention-border-radius: 3px;
+    --attention-padding: 1rem;
+    --attention-shadow: 1px 1px var(--primary-light);
+    --attention-hover-background: var(--primary-light);;
+    --attention-hover-color: var(--primary-dark);
+    --attention-font-weight: 550;
+
+    /* z-indexes */
+    --background: 0;
+    --midground: 50;
+    --midground-top: 55;
+    --foreground: 100;
+    --pop-up: 150;
+
+    /* sizes */
+    --navbar-height: 4rem;
+    --menu-width: 15rem;
+    --menu-max-width: 59%;
+
+
+    
+}
+
+
+                         /* HTML *\
+=================================*/
+#buffer {
+    height: 2rem;
+}
+body {
+    background-color: var(--background-color);
+}
+[data-theme="dark"] {
+    background-color: var(--primary-dark);
+    color: var(--primary-light);
+}
+*, * *:before, *:after, body, html {
+    font-family: Helvetica, sans-serif;
+    box-sizing: border-box;
+    margin: 0px;
+    padding: 0px;
+}
+* {
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+    text-decoration: none;
+}
+a, a:visited, a:focus, a:target {
+    color: var(--primary-light);
+}
+a:hover {
+    text-decoration: underline;
+}
+
+
+
+
+               /* NAVBAR && MENU *\
+=================================*/
+/* LOGO */
+nav .logo img {
+    /* fill the height of the navbar, 1px border on bottom to match it */
+    height: var(--navbar-height);
+    width: auto;
+}
+/* HAMBURGER MENU */
+    /* invisible checkbox used for opening and closing menu */
+#mobile-menu-checkbox {
+    display: block;
+    /* stick checkbox to the top of the screen */
+    position: fixed;
+    /* top, right, width, and height values coorrespond to those of the
+       #mobile-menu and #mobile-menu__icon :before and :after positions */
+    top: 1rem;
+    right: 1rem;
+    height: 2rem;
+    width: 2rem;
+    /* must be in front of #mobile-menu__icons in order to function */
+    z-index: var(--foreground);
+    opacity: 0%;
+}
+#mobile-menu {
+    /* flex for easy centering of #mobile-menu__icons */
+    display: flex;
+    /* will disapear if not position: absolute */
+    position: absolute;
+    /* top, right, height, and width correspond to #mobile-menu-checkbox
+       and #mobile-menu__icons */
+    right: 1rem;
+    top: 1rem;
+    width: 2rem;
+    height: 2rem;
+    /* center #mobile-menu__icons */
+    justify-content: center;
+    align-items: center;
+
+}
+#mobile-menu__icon {
+    display: block;
+    /* stick to top as user scrolls down */
+    position: fixed;
+    height: 4px;
+    width: 2rem;
+    z-index: var(--midground-top);
+    background-color: var(--primary-light);
+}
+#mobile-menu__icon::before, #mobile-menu__icon::after {
+    content: "";
+    display: block;
+    /* must be positioned relative to the original #mobile-menu__icon */
+    position: relative;
+    height: 4px;
+    width: 2rem;
+    background-color: var(--primary-light);
+}
+#mobile-menu__icon::before {
+    top: -0.8rem;
+}
+#mobile-menu__icon::after {
+    top: 0.6rem;
+}
+
+/* #mobile-menu__icon animation from hamburger menu to close symbol */
+#mobile-menu-checkbox:checked ~ #mobile-menu > #mobile-menu__icon {
+    transform: translateY(0) rotate(-135deg);
+    transition: 0.33s;
+}
+#mobile-menu-checkbox:checked ~ #mobile-menu > #mobile-menu__icon::before {
+    transform: translateY(0.8rem) rotate(90deg);
+}
+#mobile-menu-checkbox:checked ~ #mobile-menu > #mobile-menu__icon::after {
+    opacity: 0%;
+}
+
+/* INSIDE THE HAMBURGER MENU POPUP ON THE RIGHT SIDE */
+#nav-links {
+    /* hidden on mobile (default), visible when menu is clicked */
+    display: none;
+    flex-direction: column;
+    /* the sublists of a. links and b. signup/in are split apart */
+    justify-content: space-between;
+    align-items: center;
+}
+#nav-links ul {
+    /* column by default for mobile */
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+#nav-links ul li {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    color: var(--primary-light);
+    font-size: var(--font-size-large);
+}
+#signup-signin a {
+    /* padding on a instead of just signup so that signup and signin look even */
+    padding: 0.2rem;
+}
+.signup {
+    border: var(--border-light);
+    border-radius: var(--attention-border-radius);
+    box-shadow: var(--attention-shadow);
+    font-weight: var(--attention-font-weight);
+}
+.signup:hover {
+    /* invert colors on hover */
+    background-color: var(--attention-hover-background);
+    box-shadow: 0px 0px black;
+    color: var(--attention-hover-color);
+    text-decoration: none;
+}
+
+
+/* DISPLAY LINKS WHEN MENU IS CLICKED */
+#mobile-menu-checkbox:checked ~ nav > #nav-links {
+    display: flex;
+    /* stick checkbox to the top of the screen */
+    position: fixed;
+    /* top and right align the links with the #mobile-menu */
+    top: 0;
+    right: 0;
+    /* padding-top must be >= size of navbar */
+    padding: var(--navbar-height) 1rem 1rem 1rem;
+    height: 100%;
+    width: var(--menu-width);
+    /* not too large on small screens */
+    max-width: var(--menu-max-width);
+    background-color: var(--foreground-color);
+    border-left: var(--midground-border);
+    z-index: var(--foreground);
+}
+
+/* NAVBAR */
+nav {
+    /* navigation sticks to the top of the page */
+    position: fixed;
+    height: var(--navbar-height);
+    width: 100%;
+    /* navigation covers most elements - excluding those inside it, ex: menu-icon */
+    z-index: var(--midground);
+}
+
+
+
+                 /* HERO SECTION *\
+=================================*/
+
+
+
+
+                                            /* TABLETS AND DESKTOP *\
+===================================================================*/
+@media only screen and (min-width: 481px) {
+
+
+}
+
+                                             /* SMALL TABLETS ONLY *\
+===================================================================*/
+@media only screen and (min-width: 481px) and (max-width: 767px) {
+
+}
+
+                                               /* IPAD && IPAD PRO *\
+===================================================================*/
+@media only screen and (min-width : 768px) and (max-width : 1024px) {
+
+}
+
+                                                   /* DESKTOP ONLY *\
+===================================================================*/
+@media only screen and (min-width: 1025px) {
+#mobile-menu, #mobile-menu__icon, #mobile-menu-checkbox {
+    /* hamburger menu disappears on desktop */
+    display: none;
+}
+nav {
+    /* display logo and links in a row orientation */
+    display: flex;
+}
+#nav-links {
+    display: flex;
+    /* navbar displays the links and signup/in ul elements as row */
+    flex-direction: row;
+    width: 100%;
+}
+#nav-links ul {
+    flex-direction: row;
+    height: var(--navbar-height);
+}
+#nav-ul {
+    /* move links to the left in the nav */
+    justify-content: flex-start;
+}
+#signup-signin {
+    /* move signup/in links to the right in the nav */
+    justify-content: flex-end;
+}
+
+}
