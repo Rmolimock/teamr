@@ -1,0 +1,37 @@
+[Unit]
+Description=Gunicorn instance to serve teamr
+After=network.target
+
+[Service]
+User=vagrant
+Group=www-data
+WorkingDirectory=/home/vagrant/teamr
+Environment="PATH=/usr/local/bin/"
+ExecStart=/usr/local/bin/gunicorn --workers 3 --bind unix:teamr.sock -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl start teamr
+sudo systemctl enable teamr
+sudo systemctl restart teamr
+sudo vi /etc/nginx/sites-available/teamr
+
+server {
+    listen 80;
+    server_name thepointistochangeit www.thepointistochangeit;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/vagrant/teamr/teamr.sock;
+    }
+}
+
+
+
+
+sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
+sudo systemctl restart nginx
+sudo ufw delete allow 5000
+sudo ufw allow 'Nginx Full'
+

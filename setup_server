@@ -1,0 +1,32 @@
+#!/bin/bash
+# install prerequisites for running a vm instance
+sudo apt update
+sudo apt install nginx -y
+sudo apt install ufw -y
+sudo ufw allow 'Nginx HTTP'
+sudo systemctl start nginx
+sudo apt update
+sudo apt install python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools -y
+sudo apt install python3-venv -y
+sudo apt install git -y
+sudo git clone https://github.com/Rmolimock/teamr.git
+. teamr/venv/bin/activate
+sudo -H python3.6 -m pip install wheel
+sudo python3.6 -m pip install gunicorn flask
+sudo ufw allow 5000
+wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+sudo service mongod start
+sudo python3 -m pip install pymongo
+sudo python3 -m pip install Flask-Cors
+echo 'use teamr' | mongo
+echo 'db.createCollection("User")' | mongo
+sudo apt-get install tmux -y
+tmux new-session -d 'gunicorn --bind 0.0.0.0:5000 wsgi:app'
+
+# after this, set up the /etc/systemd/system/teamr.service
+# [Unit]
+# Description=Gunicorn instance to serve teamr
+# After=network.target
