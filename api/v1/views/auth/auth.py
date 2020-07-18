@@ -21,23 +21,16 @@ class Auth():
         """ empty init for now """
         self.id = str(uuid4())
         self.session_duration = 200
-
-    def save(self):
-        from models import db
-        collection = db['sessions']
-        user_id_and_session_exp = Auth.session_ids[self.id]
-        session = {self.id: user_id_and_session_exp}
-        collection.save(session)
-
     def create_session(self, user_id):
         """ create a session with expiration """
+        from models import db
         if not user_id:
             return None
         if not type(user_id) == str:
             return None
         timestamp = datetime.now()
         Auth.session_ids[self.id] = [user_id, timestamp]
-        self.save()
+        db.save_session(self)
         return self.id
 
     def user_id_for_session_id(self, session_id=None):
@@ -111,7 +104,7 @@ class Auth():
         return True
     def validate_user(self, e: str, p: str) -> TypeVar('User'):
         """ given a username and password, return the User instance """
-        error = 'incorrect login info'
+        error = 'Incorrect login credentials.'
         if not e or not isinstance(e, str):
             return error
         if not p or not isinstance(p, str):

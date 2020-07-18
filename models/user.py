@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """ User class """
 
-from models import db
 from models.base import Base
 
 
@@ -15,12 +14,12 @@ class User(Base):
         self.first_name = kwargs.get('first_name')
         self.last_name = kwargs.get('last_name')
         self.username = kwargs.get('username')
-        # make password secure
     def is_valid_password(self, pwd: str) -> bool:
         """ Validate a password
         """
+        import bcrypt
         if pwd is None or type(pwd) is not str:
             return False
         if self.password is None:
             return False
-        return pwd == self.password
+        return bcrypt.checkpw(pwd.encode('utf-8'), self.password)

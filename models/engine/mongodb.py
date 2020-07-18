@@ -1,6 +1,75 @@
 #!/usr/bin/env python3
 import pymongo
 import gridfs
-client = pymongo.MongoClient("mongodb+srv://admin:LeErz4HubDEX4iHY@cluster0.e2stt.gcp.mongodb.net/teamr?retryWrites=true&w=majority")
-db = client.teamr
-gridfs = gridfs.GridFS(db, 'images')
+
+
+class DB():
+    """ Database class """
+    def __init__(self):
+        self.client = pymongo.MongoClient("mongodb+srv://admin:LeErz4HubDEX4iHY@cluster0.e2stt.gcp.mongodb.net/teamr?retryWrites=true&w=majority")
+        self._db = self.client.teamr
+    def hash_password(self, password):
+        import bcrypt
+        """ return a hashed password """
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    def is_strong_password(self, pwd):
+        """ check if password is strong enough """
+        if len(pwd) < 8:
+            return 'Password must be at least 8 characters.'
+        special_chars = '~`!@#$%^&*()_+={[}]|"\';:?/>.<,'
+        numbers = "1234567890"
+        spc = False
+        nbs = False
+        for c in pwd:
+            if c in special_chars:
+                spc = True
+        for c in pwd:
+            if c in numbers:
+                nbs = True
+        if not spc or not nbs:
+            return 'Password must contain a special character and a number.'
+        return True
+    def register(self, username, email, pwd):
+        """ register new user in the db """
+        from models.user import User
+        is_strong = self.is_strong_password(pwd)
+        if type(is_strong) == str:
+            return is_strong
+        user_dict = {'email': email}
+        if len(User.search(user_dict)) > 0:
+            return 'User already exists.'
+        print(User.search(user_dict))
+        user = User(**user_dict)
+        user.username = username
+        pwd = self.hash_password(pwd)
+        user.password = pwd
+        self.save_obj(user)
+        return user
+    def save_obj(self, obj):
+        """ save an obj to the db """
+        classname = str(obj.__class__.__name__)
+        mycol = self._db[classname]
+        dict_repr = obj.to_json()
+        mycol.save(dict_repr)
+    def delete_obj(self, obj):
+        """ delete an obj from the db """
+        classname = str(obj.__class__.__name__)
+        mycol = self._db[classname]
+        dict_repr = obj.to_json()
+        mycol.delete_one(dict_repr)
+    def load_class(self, cls):
+        """ load instances of a class from the db """
+        mycol = self._db[cls.__name__]
+        for each in mycol.find():
+            print('*')
+            obj = cls(**each)
+    def save_session(self, auth):
+        """ save a session in the db """
+        from api.v1.views.auth.auth import Auth
+        mycol = self._db.sessions
+        user_id_and_session_exp = Auth.session_ids[auth.id]
+        session = {auth.id: user_id_and_session_exp}
+        mycol.save(session)
+
+db = DB()
+gridfs = gridfs.GridFS(db._db, 'images')

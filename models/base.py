@@ -14,11 +14,9 @@ class Base():
     """ Base class for all models """
     def __init__(self, *args, **kwargs):
         from uuid import uuid4
-        print('kwargs:', kwargs)
         classname = self.__class__.__name__
         if not classname in DATA:
             DATA[classname] = {}
-        print("OUTSIDE")
         if len(kwargs) != 0:
             for key, val in kwargs.items():
                 if key == 'created_at' or key == 'updated_at':
@@ -45,7 +43,6 @@ class Base():
         """ Search all objects with matching attributes
         """
         classname = cls.__name__
-        print("*", classname)
         def _search(obj):
             if len(attributes) == 0:
                 return True
@@ -81,9 +78,7 @@ class Base():
             result = {}
             classname = str(self.__class__.__name__)
             result['__classname__'] = classname
-            print('-------------')
             for key, value in self.__dict__.items():
-                print(key, value)
                 if type(value) is datetime:
                     result[key] = value.strftime(TIMESTAMP_FORMAT)
                 else:
@@ -100,33 +95,25 @@ class Base():
     def save_to_db(self):
         """ save instance to the database """
         from models import db
-        print('in save ------40988w834089340893890389038903890398039800893209')
-        classname = str(self.__class__.__name__)
-        print(classname)
-        mycol = db[classname]
-        dict_repr = self.to_json()
-        print('dict of self', dict_repr)
-        mycol.save(dict_repr)
-        print('saved')
+        db.save_obj(self)
+
+    def update_in_db(self, *args, **kwargs):
+        """ update a user with given attrs and save to db """
+        from models import db
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.save_to_db()
 
     def remove_from_db(self):
         from models import db
-        classname = str(self.__class__.__name__)
-        mycol = db[classname]
-        dict_repr = self.to_json()
-        mycol.delete_one(dict_repr)
+        db.delete_obj(self)
     
     @classmethod
     def load(cls, db):
         from models import db
         print('loading')
-        classname = cls.__name__
-        print(classname)
-        mycol = db[classname]
-        print(mycol)
-        for each in mycol.find():
-            print('*')
-            obj = cls(**each)
+        db.load_class(cls)
+
 
 
 if __name__ == "__main__":

@@ -1,6 +1,9 @@
 <html>
     <body>
     <a href="/">home</a><br>
+    {% if debug %}
+    {{ debug}}
+    {% endif %}
     <form name="register" action='/register' method="post">
         <fieldset>
             <legend>

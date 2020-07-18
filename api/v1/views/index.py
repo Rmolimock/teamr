@@ -2,7 +2,7 @@
 """
 Top level API routes
 """
-from flask import jsonify, abort, render_template, request, redirect
+from flask import jsonify, abort, render_template, request, redirect, make_response
 from api.v1.views import app_views
 from api.v1.views.auth.auth import Auth
 from models import User
@@ -13,8 +13,6 @@ auth = Auth()
 @app_views.route('/me', methods=['GET'], strict_slashes=False)
 def user_page():
     session = auth.session_cookie(request)
-    if not session:
-        return redirect('./auth/login.html')
     user_id = auth.current_user(session)
     user = User.get(user_id)
     if not user:
@@ -40,68 +38,63 @@ def logout2():
     return render_template('./index.html', debug=response)
 
 
-@app_views.route('/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+@app_views.route('/', methods=['GET'], strict_slashes=False)
 def home():
     """
     -----------------------------
-    Check request method and validate user if needed.
+    Check if logged in and render landing page.
     -----------------------------
-    -> Return: Public landing page or login redirect page.
+    -> Return: Public landing page.
     """
-    print('in views')
-    from flask import make_response
-    pics = ['static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg', 'static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg', 'static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg']
-    if request.method == "GET":
-        session_id = request.cookies.get('activeUser')
-        if request.cookies.get('debug'):
-            return render_template('./index.html',  session=session_id, pics=pics)
-        from models import db
-        users = User.search()
-        return render_template('./index.html', all_users=users, session=session_id, pics=pics)
-    elif request.method == "POST":
-        email, pwd = request.form.get('email'), request.form.get('password')
-        # validate_user returns a userJson if True and ErrorMessage if False.
-        user_or_error = auth.validate_user(email, pwd)
-        print(email, pwd)
-        if not type(user_or_error) == User:
-            users = User.search()
-            return render_template('./index.html', debug=user_or_error, all_users=users, pics=pics)
-        user = user_or_error
-        session_id = auth.create_session(user.id)
-        users = User.search()
-        res = make_response(render_template('./index.html', session=session_id, debug='signed in as ' + user.username, all_users=users, pics=pics))
-        res.set_cookie('activeUser', session_id)
-        return res
+    session_id = request.cookies.get('activeUser')
+    users = User.search()
+    return render_template('./index.html', all_users=users, session_id=session_id)
+        
+        
 
 
 @app_views.route('/register', methods=['GET', 'POST'], strict_slashes=False)
 def register():
+    """
+    -----------------------------
+    Check request method and register user if acceptable credentials.
+    -----------------------------
+    -> Return: Profile page if successful, otherwise /register with error.
+    """
+    from models import db
     if request.method == "GET":
-        print("IN HERE")
         return render_template('./auth/register.html')
     if request.method == "POST":
-        print("IN HERE YO")
-        username = request.form.get('username')
+        uname = request.form.get('username')
         email = request.form.get('email')
         pwd = request.form.get('password')
-        user = User()
-        user.username = username
-        user.email = email
-        user.password = pwd
-        print(user.password)
-        user.save_to_db()
-        for k, v in user.__dict__.items():
-            print(k, v)
-        users = User.search()
-        pics = ['static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg', 'static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg', 'static/images/team_member_1.jpg', 'static/images/team_member_2.jpg', 'static/images/team_member_3.jpg']
-        return render_template('./index.html', debug=f'{user.username} has been registered!', all_users=users, pics=pics)
+        user = db.register(uname, email, pwd)
+        if not type(user) == User:
+            return render_template('./auth/register.html', debug=user)
+        session_id = auth.create_session(user.id)
+        response = make_response(render_template('./profile.html', user=user))
+        response.set_cookie('activeUser', session_id)
+        return response
 
 
 @app_views.route('/login', methods=['GET', 'POST'], strict_slashes=False)
 def login():
     if request.method == 'GET':
         return render_template('./auth/login.html')
-    return redirect('/')
+    if request.method == 'POST':
+        email = request.form.get('email')
+        pwd = request.form.get('password')
+        if not '@' in email:
+            return render_template('./auth/login.html', debug='Incorrect login credentials.')
+        user_or_error = auth.validate_user(email, pwd)
+        users = User.search()
+        if not type(user_or_error) == User:
+            return render_template('./index.html', debug=user_or_error, all_users=users)
+        user = user_or_error
+        session_id = auth.create_session(user.id)
+        response = make_response(render_template('./profile.html'))
+        response.set_cookie('activeUser', session_id)
+        return response
 
 
 @app_views.route('/logout', methods=['POST'], strict_slashes=False)
