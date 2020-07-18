@@ -10,11 +10,17 @@ from models import User
 
 auth = Auth()
 
-@app_views.route('/me', methods=['GET'], strict_slashes=False)
-def user_page():
+
+def get_user_from_session(request):
+    """ return user of error from session cookie """
     session = auth.session_cookie(request)
     user_id = auth.current_user(session)
     user = User.get(user_id)
+    return user
+
+@app_views.route('/me', methods=['GET'], strict_slashes=False)
+def user_page():
+    user = get_user_from_session(request)
     if not user:
         return redirect('./auth/login.html')
     user_dict = user.to_json()
@@ -32,9 +38,13 @@ def status():
     return jsonify({"status": "OK"})
 
 
-@app_views.route('/logout', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+@app_views.route('/logout', methods=['GET', 'DELETE'], strict_slashes=False)
 def logout2():
     response = 'LOGGED OUT'
+    user = get_user_from_session(request)
+    if not user:
+        return redirect('./auth/login.html')
+    auth.destroy_session(request)
     return render_template('./index.html', debug=response)
 
 
