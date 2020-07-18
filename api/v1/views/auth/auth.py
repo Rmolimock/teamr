@@ -16,11 +16,17 @@ TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 class Auth():
     """ Authenticate requests and current users. """
     session_ids = {}
-
+    session_duration = 200
     def __init__(self):
         """ empty init for now """
         self.id = str(uuid4())
         self.session_duration = 200
+        self.load_sessions()
+    def load_sessions(self):
+        """ load sessions from db upon restart """
+        from models import db
+        sessions = db.load_sessions(self)
+        self.session_ids = sessions
     def create_session(self, user_id):
         """ create a session with expiration """
         from models import db
@@ -39,20 +45,17 @@ class Auth():
         if not session_id:
             return None
         if session_id not in self.session_ids:
-            print(2)
             return None
         if not type(self.session_ids[session_id]) == list:
-            print(3)
             return None
         user_id = Auth.session_ids[session_id][0]
         if self.session_duration <= 0:
             return user_id
         if len(Auth.session_ids[session_id]) != 2:
-            print(4)
             return None
         start = Auth.session_ids[session_id][1]
         if datetime.now() > start + timedelta(seconds=self.session_duration):
-            print(5)
+            del Auth.session_ids[session_id]
             return None
         return user_id
 
@@ -120,3 +123,5 @@ class Auth():
 
     def session_cookie(self, request):
         return request.cookies.get('activeUser')
+
+
