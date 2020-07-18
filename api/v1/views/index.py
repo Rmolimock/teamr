@@ -106,7 +106,3 @@ def login():
         response.set_cookie('activeUser', session_id)
         return response
 
-
-@app_views.route('/logout', methods=['POST'], strict_slashes=False)
-def logout():
-    pass
