@@ -1,0 +1,26 @@
+
+<!doctype html>
+<title>{% block title %}{% endblock %} - Flaskr</title>
+<meta>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</meta>
+    <nav>
+  <h1><a href="/">#ThePointIsToChangeIt</a></h1>
+  <h1>Profile</h1>
+  <h2>{{ user.username }}</h2></br>
+  {% if user %}
+    {{ user.email }}<br>
+    {{ user.password }}
+  {% endif %}
+  <ul>
+  </ul>
+</nav>
+<section class="content">
+  <header>
+    {% block header %}
+    {% endblock %}
+  </header>
+
+  {% block content %}
+  {% endblock %}
+</section>

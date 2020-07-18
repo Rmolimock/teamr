@@ -1,0 +1,81 @@
+                                                         /* MOBILE *\
+===================================================================*/
+:root {
+    /* colors */
+    --background-color: whitesmoke;
+    --midground-color: black;
+    --foreground-color: black;
+    --popup-color: whitesmoke;
+    --selected-color: whitesmoke;
+    --primary-dark: black;
+    --primary-light: white;
+
+    /* font sizes */
+    --font-size-x-sm: 9px;
+    --font-size-sm: 11px;
+    --font-size-med: 14px;
+    --font-size-med-plus: 16px;
+    --font-size-large: 18px;
+    --font-size-x-large: 26px;
+
+    /* styles */
+    --border-light: 1px solid var(--primary-light);
+    --border-dark: 1px dotted var(--primary-dark);
+    --attention-border-radius: 3px;
+    --attention-padding: 1rem;
+    --attention-shadow: 1px 1px var(--primary-light);
+    --attention-hover-background: var(--primary-light);;
+    --attention-hover-color: var(--primary-dark);
+    --attention-font-weight: 550;
+
+    /* z-indexes */
+    --background: 0;
+    --midground: 50;
+    --midground-top: 55;
+    --foreground: 100;
+    --pop-up: 150;
+
+    /* sizes */
+    --navbar-height: 4rem;
+    --menu-width: 15rem;
+    --menu-max-width: 59%;    
+}
+footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#footer__sitemap {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    border: var(--primary-light);
+    padding-bottom: 2rem;
+}
+#footer__sitemap  h1 {
+    font-size: var(--font-size-x-large);
+    padding: 3rem 0.5rem 0.5rem 0.5rem;
+}
+#footer__sitemap ul {
+ display: flex;
+flex-direction: column;
+align-items: center;
+width: 256px;
+}
+#footer__sitemap ul li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    text-decoration: underline;
+}
+#Copyright {
+    text-align: center;
+}
+
+
+
+                                                   /* DESKTOP ONLY *\
+===================================================================*/
+@media only screen and (min-width: 1025px) {
+}
