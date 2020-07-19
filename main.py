@@ -51,7 +51,8 @@ def before():
                              '/register',
                              '/reset_password',
                              '/reset_password/*',
-                             '/static/*']):
+                             '/static/*',
+                             '/me/*']):
             return None
         session = auth.session_cookie(request)
         if not session:

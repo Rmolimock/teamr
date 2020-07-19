@@ -143,7 +143,7 @@ def login():
         user_or_error = auth.validate_user(email, pwd)
         if not type(user_or_error) == User:
             return render_template('./auth/login.html', msg=user_or_error)
-        session_id = auth.create_session(user.id)
+        session_id = auth.create_session(user_or_error.id)
         response = make_response(render_template('./profile.html', user=user_or_error.to_json()))
         response.set_cookie('activeUser', session_id)
         return response
@@ -174,14 +174,14 @@ def reset_password(token=None):
             subject='Teamr password reset.',
             html_content='<a href="https://www.thepointistochangeit.com/reset_password/' + token + '">Click here to reset your Teamr password.</a>')
         try:
-            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+            sg = SendGridAPIClient('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')
             response = sg.send(message)
             # in the future, log these messages instead of printing
             print(response.status_code)
             print(response.body)
             print(response.headers)
         except Exception as e:
-            print(e.message)
+            print(e)
         return render_template('./auth/forgot_password.html', msg="A link has been sent to the email address provided.")
     elif token:
         from models import User
