@@ -6,6 +6,9 @@
 </meta>
     <nav>
   <h1><a href="/">#ThePointIsToChangeIt</a></h1>
+  {% if msg %}
+      {{ msg }}
+  {% endif %}
   <h1>Profile</h1>
   <h2>{{ user.username }}</h2></br>
   {% if user %}

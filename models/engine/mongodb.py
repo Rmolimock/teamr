@@ -70,23 +70,7 @@ class DB():
         user_id_and_session_exp = Auth.session_ids[auth.id]
         session = {auth.id: user_id_and_session_exp}
         mycol.save(session)
-    def load_sessions(self, auth):
-        """ load sessions from the db """
-        from api.v1.views.auth.auth import Auth
-        from datetime import datetime, timedelta
-        from models.base import TIMESTAMP_FORMAT
-        sessions = self._db.sessions
-        ret = {}
-        for each in sessions.find():
-            for k in each.keys():
-                session_id = k
-            user_id_and_session_exp = each[session_id]
-            start = user_id_and_session_exp[1]
-            if datetime.now() > start + timedelta(seconds=Auth.session_duration):
-                self._db.sessions.delete_one({session_id: user_id_and_session_exp})
-                continue
-            ret[session_id] = user_id_and_session_exp
-        return ret if ret else None
+
 
 db = DB()
 gridfs = gridfs.GridFS(db._db, 'images')

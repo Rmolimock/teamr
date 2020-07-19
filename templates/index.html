@@ -66,14 +66,16 @@
     <section id="hero" class="section">
 
       <div class="row-container">
-        {% if debug %}
-        <div style="display:flex;justify-content: center;">
-          {{ debug }}
-        </div>
-        {% endif %}
+        
         <div class="row-item col-container">
           <header>
-            <h1>Site Under Development</h1>
+            <h1>
+              {% if msg %}
+                <div style="display:flex;justify-content: center;">
+                  {{ msg }}
+                </div>
+              {% endif %}
+        Site Under Development</h1>
           </header>
           <p>
             Short description. This should only be one or two lines and get straight to the point.
@@ -121,13 +123,8 @@
     <section id="mission" class="section">
       This is where the mission statement would go.
       {% for user in all_users %}
-      {% set user = all_users[loop.index-1] %}
-      {% set pic = pics[loop.index-1] %}
         <strong>
           {{ user.username }}
-          <div class="pic">
-          <img src="{{pic}}">
-          </div>
         </strong></br>
         email: 
         {{ user.email }}</br>

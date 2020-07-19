@@ -10,6 +10,10 @@ from flask import Flask, jsonify, abort, request, redirect, render_template
 from flask_cors import (CORS, cross_origin)
 import os
 from models import db
+from datetime import datetime, timedelta
+
+
+
 
 # instantiate the app, add cors protection, and check which authentication
 # method it should run with.
@@ -23,13 +27,17 @@ CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 # instantiate the session authentication object
 auth = Auth()
 
+
+
 # if route requested needs authentication, authenticate user
 @app.before_request
 def before():
     """ Check for 401, 403 before request is processed
     """
+    now = datetime.now()
+    if now.hour == 0:
+        delete_expired_sessions()
     if auth:
-
         if not auth.require_auth(
                             request.path,
                             ['/api/v1/status/',
@@ -41,16 +49,27 @@ def before():
                              '/login',
                              '/logout',
                              '/register',
-                             '/api/v1/views/register',
+                             '/reset_password',
+                             '/reset_password/*',
                              '/static/*']):
             return None
         session = auth.session_cookie(request)
         if not session:
             abort(401)
+        print('in auth')
         current_user = auth.current_user(session)
         if not current_user:
             abort(403)
 
+
+def delete_expired_sessions():
+    """ delete expired sessions that haven't been requested """
+    for k, v in auth.session_ids.items():
+        start = v[1]
+        print(k)
+        if datetime.now() > start + timedelta(seconds=auth.session_duration):
+            print('deleted session')
+            del Auth.session_ids[k]
 
 # configure what responses various abort() calls generate
 @app.errorhandler(404)

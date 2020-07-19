@@ -21,12 +21,7 @@ class Auth():
         """ empty init for now """
         self.id = str(uuid4())
         self.session_duration = 200
-        self.load_sessions()
-    def load_sessions(self):
-        """ load sessions from db upon restart """
-        from models import db
-        sessions = db.load_sessions(self)
-        self.session_ids = sessions
+        self.reset_password_tokens = {}
     def create_session(self, user_id):
         """ create a session with expiration """
         from models import db
@@ -44,7 +39,7 @@ class Auth():
         from datetime import datetime, timedelta
         if not session_id:
             return None
-        if session_id not in self.session_ids:
+        if not session_id in self.session_ids:
             return None
         if not type(self.session_ids[session_id]) == list:
             return None
@@ -63,6 +58,8 @@ class Auth():
         """ return a user object from given session id """
         from models import User
         from datetime import datetime
+        if not session_id:
+            return None
         user_id = self.user_id_for_session_id(session_id)
         print(user_id, 'user_id')
         if not user_id:
