@@ -174,7 +174,7 @@ def reset_password(token=None):
             subject='Teamr password reset.',
             html_content='<a href="https://www.thepointistochangeit.com/reset_password/' + token + '">Click here to reset your Teamr password.</a>')
         try:
-            sg = SendGridAPIClient('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')
+            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
             response = sg.send(message)
             # in the future, log these messages instead of printing
             print(response.status_code)
