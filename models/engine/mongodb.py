@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 import pymongo
 import gridfs
+import os
+
+SECRET_KEY = os.getenv('MONGO_API_KEY')
 
 
 class DB():
     """ Database class """
     def __init__(self):
         """ init instance of DB """
-        self.client = pymongo.MongoClient("mongodb+srv://admin:LeErz4HubDEX4iHY@cluster0.e2stt.gcp.mongodb.net/teamr?retryWrites=true&w=majority")
+        self.client = pymongo.MongoClient(f"mongodb+srv://admin:{SECRET_KEY}@cluster0.e2stt.gcp.mongodb.net/teamr?retryWrites=true&w=majority")
         self._db = self.client.teamr
     def hash_password(self, password):
         """
