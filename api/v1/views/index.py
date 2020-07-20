@@ -12,7 +12,12 @@ auth = Auth()
 
 
 def get_user_from_session(request):
-    """ return user of error from session cookie """
+    """
+    ----------------------------
+    Check for a user associated with the current session
+    ----------------------------
+    -> Return: User
+    """
     session = auth.session_cookie(request)
     print(session)
     user_id = auth.current_user(session)
@@ -93,9 +98,9 @@ def home():
     """
     session_id = request.cookies.get('activeUser')
     users = User.search()
-    return render_template('./index.html', all_users=users, session_id=session_id)
-        
-        
+    if session_id:
+        return render_template('./index.html', all_users=users, session_id=session_id)
+    return render_template('./index.html', all_users=users)
 
 
 @app_views.route('/register', methods=['GET', 'POST'], strict_slashes=False)

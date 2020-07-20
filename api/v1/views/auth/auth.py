@@ -23,7 +23,12 @@ class Auth():
         self.session_duration = 200
         self.reset_password_tokens = {}
     def create_session(self, user_id):
-        """ create a session with expiration """
+        """
+        ----------------------------
+        Create a session for user upon login.
+        ----------------------------
+        -> Return: newly created session.
+        """
         from models import db
         if not user_id:
             return None
@@ -35,7 +40,13 @@ class Auth():
         return self.id
 
     def user_id_for_session_id(self, session_id=None):
-        """ return the user associated with a given session """
+        """
+        ----------------------------
+        Check for a user associated with the current session.
+        Verify the session has not expired.
+        ----------------------------
+        -> Return: User's id or None if error.
+        """
         from datetime import datetime, timedelta
         if not session_id:
             return None
@@ -55,7 +66,14 @@ class Auth():
         return user_id
 
     def current_user(self, session_id):
-        """ return a user object from given session id """
+        """
+        ----------------------------
+        Check for a user associated with the current session.
+        Verify user exists.
+        Update session expiration.
+        ----------------------------
+        -> Return: User's id or None if error.
+        """
         from models import User
         from datetime import datetime
         if not session_id:
@@ -71,7 +89,12 @@ class Auth():
         return user_id
 
     def destroy_session(self, request=None):
-        """ logout from current session """
+        """
+        ----------------------------
+        Destroy the current session to log out user.
+        ----------------------------
+        -> Return: True or False.
+        """
         if not request:
             return False
         session_id = self.session_cookie(request)
@@ -103,7 +126,12 @@ class Auth():
                 return False
         return True
     def validate_user(self, e: str, p: str) -> TypeVar('User'):
-        """ given a username and password, return the User instance """
+        """
+        ----------------------------
+        Verify a user with given email and password exists.
+        ----------------------------
+        -> Return: User or error message.
+        """
         error = 'Incorrect login credentials.'
         if not e or not isinstance(e, str):
             return error
@@ -119,6 +147,12 @@ class Auth():
         return user[0] if user[0].is_valid_password(p) else error
 
     def session_cookie(self, request):
+        """
+        ----------------------------
+        Check for a session cookie.
+        ----------------------------
+        -> Return: Session cookie or None.
+        """
         return request.cookies.get('activeUser')
 
 

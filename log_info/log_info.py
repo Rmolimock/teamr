@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+Create a logger object and associate it with files for each level of logging.
+"""
 import logging
 
 # create a debug logger

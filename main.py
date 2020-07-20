@@ -33,8 +33,13 @@ auth = Auth()
 # if route requested needs authentication, authenticate user
 @app.before_request
 def before():
-    """ Check for 401, 403 before request is processed
     """
+        ----------------------------
+        Check if requested route is public.
+        If not, authenticate the user.
+        ----------------------------
+        -> Return: None or abort with approriate errorhandler.
+        """
     now = datetime.now()
     if now.hour == 0:
         delete_expired_sessions()
@@ -65,7 +70,12 @@ def before():
 
 
 def delete_expired_sessions():
-    """ delete expired sessions that haven't been requested """
+    """
+        ----------------------------
+        Occasionally delete expired sessions from the db and memory.
+        ----------------------------
+        -> Return: None.
+        """
     for k, v in auth.session_ids.items():
         start = v[1]
         print(k)

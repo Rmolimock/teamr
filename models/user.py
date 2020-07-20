@@ -15,7 +15,11 @@ class User(Base):
         self.last_name = kwargs.get('last_name')
         self.username = kwargs.get('username')
     def is_valid_password(self, pwd: str) -> bool:
-        """ Validate a password
+        """
+        ----------------------------
+        Check if pwd is the same as stored hashed password.
+        ----------------------------
+        -> Return: True or False
         """
         import bcrypt
         if pwd is None or type(pwd) is not str:

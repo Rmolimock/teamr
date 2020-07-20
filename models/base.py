@@ -33,14 +33,23 @@ class Base():
 
     @classmethod
     def count(cls) -> int:
-        """ Count all objects
+        """
+        ----------------------------
+        Count the number of objects of a given class.
+        ----------------------------
+        -> Return: Number of objects.
         """
         s_class = cls.__name__
         return len(DATA[s_class].keys())
 
     @classmethod
     def search(cls, attributes: dict = {}) -> List[TypeVar('Base')]:
-        """ Search all objects with matching attributes
+        """
+        ----------------------------
+        Search memory for an object of a given class,
+        with matching attributes.
+        ----------------------------
+        -> Return: List of matching objects.
         """
         classname = cls.__name__
         def _search(obj):
@@ -57,16 +66,31 @@ class Base():
 
     @classmethod
     def get(cls, id: str) -> TypeVar('Base'):
-        """ Return one object by ID
+        """
+        ----------------------------
+        Get an object by it's id.
+        ----------------------------
+        -> Return: Object with given id.
         """
         classname = cls.__name__
         return DATA[classname].get(id)
 
     def __repr__(self):
+        """
+        ----------------------------
+        Generate a string representation of an object.
+        ----------------------------
+        -> Return: String representation.
+        """
         return str(self.__dict__)
     
     def __eq__(self, other: TypeVar('Base')) -> bool:
-        """ Test equality """
+        """
+        ----------------------------
+        Test equality of two instances of Base.
+        ----------------------------
+        -> Return: True or False.
+        """
         if type(self) != type(other):
             return False
         if not isintance(other, Base):
@@ -74,7 +98,12 @@ class Base():
         return self.id == other.id
 
     def to_json(self) -> dict:
-            """ Convert the object into a JSON dictionary """
+        """
+        ----------------------------
+        Create a dictionary representation of an object using __dict__.
+        ----------------------------
+        -> Return: Dictionary representation of object.
+        """
             result = {}
             classname = str(self.__class__.__name__)
             result['__classname__'] = classname
@@ -93,23 +122,46 @@ class Base():
             return result
 
     def save_to_db(self):
-        """ save instance to the database """
+        """
+        ----------------------------
+        Save an object to the database and memory.
+        ----------------------------
+        -> Return: None.
+        """
         from models import db
         db.save_obj(self)
 
     def update_in_db(self, *args, **kwargs):
-        """ update a user with given attrs and save to db """
+        """
+        ----------------------------
+        Update an object's attributes and then save it
+        to the database and memory.
+        ----------------------------
+        -> Return: None.
+        """
         from models import db
         for k, v in kwargs.items():
             setattr(self, k, v)
         self.save_to_db()
 
     def remove_from_db(self):
+        """
+        ----------------------------
+        Remove an object from the database and memory.
+        ----------------------------
+        -> Return: None.
+        """
         from models import db
         db.delete_obj(self)
     
     @classmethod
     def load(cls, db):
+        """
+        ----------------------------
+        Load objects of a given class from the database into memory.
+        ----------------------------
+        -> Return: None.
+        """
         from models import db
         print('loading')
         db.load_class(cls)
