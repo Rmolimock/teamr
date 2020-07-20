@@ -10,24 +10,25 @@ from models import User
 
 auth = Auth()
 
-
-def get_user_from_session(request):
+@app_views.route('/', methods=['GET', 'POST'], strict_slashes=False)
+def home():
     """
-    ----------------------------
-    Check for a user associated with the current session
-    ----------------------------
-    -> Return: User
+    -----------------------------
+    Check if logged in and render landing page.
+    -----------------------------
+    -> Return: Public landing page.
     """
-    session = auth.session_cookie(request)
-    print(session)
-    user_id = auth.current_user(session)
-    print(user_id)
-    user = User.get(user_id)
-    print(user)
-    return user
+    users = User.search()
+    session = request.cookies.get('activeUser')
+    session = get_user_from_session(request)
+    if session:
+        return render_template('./index.html', all_users=users, session_id=session_id)
+    return render_template('./index.html', all_users=users)
 
-@app_views.route('/me', methods=['GET', 'POST'], strict_slashes=False)
-def user_page():
+
+@app_views.route('/users/<user_id>', methods=['GET', 'POST'], strict_slashes=False)
+@app_views.route('/users', methods=['GET', 'POST'], strict_slashes=False)
+def user_page(user_id=None):
     """
     ----------------------------
     Profile page of the current user.
@@ -38,8 +39,16 @@ def user_page():
         user = get_user_from_session(request)
         if not user:
             return redirect('./auth/login.html')
-        user_dict = user.to_json()
-        return render_template('./profile.html', user=user_dict)
+        if user_id == user.id:
+            user_dict = user.to_json()
+            return render_template('./profile.html', auth_user=user_dict)
+        else:
+            from models import User
+            user = User.search({'id': user_id})
+            if not user:
+                abort(404)
+            user_dict = user[0].to_json()
+            return render_template('./profile.html', pub_user=user_dict)
     elif request.method == 'POST':
         from models import db
         pwd1 = request.form.get('new_password1')
@@ -57,8 +66,6 @@ def user_page():
         user.password = new_password
         user.save_to_db()
         return render_template('./profile.html', user=user.to_json(), msg="Password updated.")
-        
-        
 
 
 @app_views.route('/status', methods=['GET'], strict_slashes=False)
@@ -70,37 +77,6 @@ def status():
     -> Return: Json response with status message "OK"
     """
     return jsonify({"status": "OK"})
-
-
-@app_views.route('/logout', methods=['POST', 'GET', 'DELETE'], strict_slashes=False)
-def logout():
-    """
-    -----------------------------
-    Delete current session cookie if present.
-    -----------------------------
-    -> Return: Public landing page.
-    """
-    response = 'Logged out.'
-    user = get_user_from_session(request)
-    if not user:
-        return redirect('./auth/login.html')
-    auth.destroy_session(request)
-    return render_template('./index.html', msg=response)
-
-
-@app_views.route('/', methods=['GET', 'POST'], strict_slashes=False)
-def home():
-    """
-    -----------------------------
-    Check if logged in and render landing page.
-    -----------------------------
-    -> Return: Public landing page.
-    """
-    session_id = request.cookies.get('activeUser')
-    users = User.search()
-    if session_id:
-        return render_template('./index.html', all_users=users, session_id=session_id)
-    return render_template('./index.html', all_users=users)
 
 
 @app_views.route('/register', methods=['GET', 'POST'], strict_slashes=False)
@@ -149,10 +125,26 @@ def login():
         if not type(user_or_error) == User:
             return render_template('./auth/login.html', msg=user_or_error)
         session_id = auth.create_session(user_or_error.id)
-        response = make_response(render_template('./profile.html', user=user_or_error.to_json()))
+        response = make_response(render_template('./profile.html', auth_user=user_or_error.to_json()))
         response.set_cookie('activeUser', session_id)
         return response
         
+
+@app_views.route('/logout', methods=['POST', 'GET', 'DELETE'], strict_slashes=False)
+def logout():
+    """
+    -----------------------------
+    Delete current session cookie if present.
+    -----------------------------
+    -> Return: Public landing page.
+    """
+    response = 'Logged out.'
+    user = get_user_from_session(request)
+    if not user:
+        return redirect('./auth/login.html')
+    auth.destroy_session(request)
+    return render_template('./index.html', msg=response)
+
 
 @app_views.route('/reset_password', methods=['GET', 'POST'], strict_slashes=False)
 @app_views.route('/reset_password/<token>', methods=['GET', 'POST'], strict_slashes=False)
@@ -207,12 +199,24 @@ def reset_password(token=None):
 
 
 
+"""
+----------------
+HELPER FUNCTIONS
+----------------
+"""
 
 
-
-
-
-
-
-
-
+def get_user_from_session(request):
+    """
+    ----------------------------
+    Check for a user associated with the current session
+    ----------------------------
+    -> Return: User
+    """
+    session = auth.session_cookie(request)
+    print(session)
+    user_id = auth.current_user(session)
+    print(user_id)
+    user = User.get(user_id)
+    print(user)
+    return user

@@ -6,6 +6,15 @@
 </meta>
     <nav>
   <h1><a href="/">#ThePointIsToChangeIt</a></h1>
+  {% if pub_user %}
+      {% set user = pub_user %}
+      THIS IS NOT YOUR PAGE
+    {% elif auth_user %}
+      {% set user = auth_user %}
+      THIS IS YOUR PAGE
+    {% else %}
+      NONE
+    {% endif %}
   {% if msg %}
       {{ msg }}
   {% endif %}
