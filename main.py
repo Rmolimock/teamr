@@ -11,7 +11,8 @@ from flask_cors import (CORS, cross_origin)
 import os
 from models import db
 from datetime import datetime, timedelta
-
+import logging
+from log_info.log_info import logger
 
 
 
@@ -99,3 +100,4 @@ if __name__ == "__main__":
     host = getenv("API_HOST", "127.0.0.1")
     port = getenv("API_PORT", "8080")
     app.run(host=host, port=port, debug=True)
+
