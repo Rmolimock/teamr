@@ -1,0 +1,126 @@
+<!Doctype HTML>
+<html  lang="EN-US" dir="ltr">
+<head>
+  {% block head %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="Teamr" content="Rapid Democracy!">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/x-icon">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}">
+  <title>Teamr - {% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
+  {% endblock %}
+</head>
+
+<!-- BODY -->
+
+<body scroll="no">
+  <header>
+
+    <!-- MOBILE MENU -->
+    <input type="checkbox" id="mobile-menu-checkbox">
+    <div id="mobile-menu">
+      <span id="mobile-menu__icon"></span>
+    </div>
+
+    <!-- LOGO && NAVIGATION LINKS -->
+    <nav data-theme="dark">
+      <div class="logo">
+        <a href="https://thepointistochangeit.com">
+          <img src="static/images/logo.png" alt="Logo">
+        </a>
+      </div>
+      <div id="nav-links" class="container-fluid col">
+        <ul id="nav-ul">
+          {% if nav_links %}
+            {% for nav in nav_links%}
+              <li><a href="{{ nav.url }}" class="{%if nav.classes %}{% for class in nav.classes %} {{ class }} {% endfor %}{% endif %}">{{ nav.text }}</a></li>
+            {% endfor %}
+          {% endif %}
+        </ul>
+
+        <!-- SIGN UP && SIGN IN -->
+
+        <ul id="nav-buttons">
+          {% if nav_buttons %}
+            {% for nav in nav_buttons %}
+              <li><a href="{{ nav.url }}" class="{%if nav.classes %}{% for class in nav.classes %} {{ class }} {% endfor %}{% endif %}">{{ nav.text }}</a></li>
+            {% endfor %}
+          {% endif %}
+        </ul>
+      </div>
+
+    </nav>
+
+  </header>
+
+  <!-- buffer ensures content doesn't start until the end of the navbar -->
+  <div id="buffer">.</div>
+
+
+  {% block content %}{% endblock %}
+  <!-- HEADER -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+    <!-- FOOTER -->
+
+  <footer data-theme="dark">
+    {% block footer %}
+    <!-- LINKS -->
+
+    <div id="footer__sitemap">
+      
+      <ul>
+        <h1>Site Name</h1>
+        <li>Our Mission</li>
+        <li>Meet the Team</li>
+        <li>Careers</li>
+      </ul>
+      
+      <ul>
+        <h1>Support</h1>
+        <li>Contact</li>
+        <li>FAQ</li>
+      </ul>
+      <ul>
+        <h1>Get Started</h1>
+        <li>Sign Up</li>
+        <li>Sign In</li>
+      </ul>
+    </div>
+
+    <!-- SOCIAL MEDIA -->
+
+    <div id="social-media">
+      icon1 icon2 icon3
+    </div>
+    <div id="Copyright">
+      © Copyright 2020 Russell Molimock
+    </div>
+    {% endblock %}
+  </footer>
+
+</body>

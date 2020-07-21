@@ -1,67 +1,18 @@
-<!Doctype HTML>
-<html  lang="EN-US" dir="ltr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="Teamr" content="Rapid Democracy!">
-  <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/x-icon">
-  <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}">
-  <title>Tutor App</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block head %}
+{{ super() }}
+  <!-- this is where static files specific to this child template go -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
-</head>
+{% endblock %}
 
-<!-- BODY -->
-
-<body scroll="no">
-  
-  <!-- HEADER -->
-
-  <header>
-
-    <!-- MOBILE MENU -->
-    <input type="checkbox" id="mobile-menu-checkbox">
-    <div id="mobile-menu">
-      <span id="mobile-menu__icon"></span>
-    </div>
-
-    <!-- LOGO && NAVIGATION LINKS -->
-    <nav data-theme="dark">
-      <div class="logo">
-        <a href="">
-          <img src="static/images/logo.png" alt="Logo">
-        </a>
-      </div>
-      <div id="nav-links" class="container-fluid col">
-        <ul id="nav-ul">
-          <li><a href="#mission">Our Mission</a></li>
-          <li><a href="#about">About Us</a></li>
-          <li><a href="#team">Meet the Team</a></li>
-        </ul>
-
-        <!-- SIGN UP && SIGN IN -->
-
-        <ul id="signup-signin">
-          {% if session_id %}
-            <li><a href='/me' class="signin">Profile</a></li>
-          {% endif %}
-            <li><a href="/register"  class="signup">SIGN UP</a></li>
-          <li><a href='/login' class="signin">Sign In</a></li>
-        </ul>
-      </div>
-
-    </nav>
-
-  </header>
+{% block content %}
 
   <!-- MAIN -->
 
   <main>
-    <div id="buffer">.</div>
 
     <!-- HERO SECTION -->
-    <div id="buffer">.</div>
 
     <section id="hero" class="section">
 
@@ -81,39 +32,6 @@
             Short description. This should only be one or two lines and get straight to the point.
           </p>
         </div>
-
-        <div class="row-item card col-container">
-          <form name="register" action='/register' method="post">
-        <fieldset>
-            <legend>
-                <strong>SIGN UP</strong>
-            </legend>
-        <ul>
-            <li>
-                <li>
-                    <label for="email">Email: </label>
-                    <input type="email" name="email" value="">
-                </li>
-                <li>
-                    <label for="username">Username: </label>
-                    <input type="text" name="username" value="">
-                </li>
-                <li>
-                    <label for="password">Password: </label>
-                    <input type="password" name="password" value="">
-                </li>
-                <li>
-                    <label for="img">Select image:</label>
-                    <input type="file" id="img" name="img" accept="image/*|media_type">">
-                </li>
-                <li>
-                    <button type="submit" name="register" value="register">SUBMIT</button>
-                </li>
-        </ul>
-        </fieldset>
-    </form>
-        </div>
-
       </div>
 
     </section>
@@ -124,7 +42,7 @@
       This is where the mission statement would go.
       {% for user in all_users %}
         <strong>
-          {{ user.username }}
+          <a href="{{ user.profile_url }}">{{ user.username }}</a>
         </strong></br>
         email: 
         {{ user.email }}</br>
@@ -134,6 +52,8 @@
         {{ user.created_at }}</br>
         updated at: 
         {{ user.updated_at }}</br>
+        user id: 
+        {{ user.id }}<br>
       {% endfor %}
       <hr>
 
@@ -195,41 +115,5 @@
 
   </main>
 
-    <!-- FOOTER -->
 
-  <footer data-theme="dark">
-
-    <!-- LINKS -->
-
-    <div id="footer__sitemap">
-      
-      <ul>
-        <h1>Site Name</h1>
-        <li>Our Mission</li>
-        <li>Meet the Team</li>
-        <li>Careers</li>
-      </ul>
-      
-      <ul>
-        <h1>Support</h1>
-        <li>Contact</li>
-        <li>FAQ</li>
-      </ul>
-      <ul>
-        <h1>Get Started</h1>
-        <li>Sign Up</li>
-        <li>Sign In</li>
-      </ul>
-    </div>
-
-    <!-- SOCIAL MEDIA -->
-
-    <div id="social-media">
-      icon1 icon2 icon3
-    </div>
-    <div id="Copyright">
-      © Copyright 2020 Russell Molimock
-    </div>
-  </footer>
-
-</body>
+{% endblock %}

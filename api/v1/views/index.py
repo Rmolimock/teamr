@@ -18,16 +18,33 @@ def home():
     -----------------------------
     -> Return: Public landing page.
     """
+    from models import profile, logout, login, register
+    pub_buttons = [register, login]
     users = User.search()
     session = request.cookies.get('activeUser')
-    session = get_user_from_session(request)
-    if session:
-        return render_template('./index.html', all_users=users, session_id=session_id)
-    return render_template('./index.html', all_users=users)
+    user = get_user_from_session(request)
+    if not user:
+        # public home page
+        from models import mission, about, team
+        nav_links = [mission, about, team]
+        return render_template('./index.html',
+                                all_users=users,
+                                nav_links=nav_links,
+                                nav_buttons=pub_buttons)
+    # if user is logged in display dashboard
+    from models import my_teams, all_teams
+    profile.url = user.profile_url
+    auth_buttons = [profile, logout]
+    auth_links = [my_teams, all_teams]
+    return render_template('./index.html',
+                            all_users=users,
+                            session_id=session,
+                            profile_url=user.profile_url,
+                            nav_links=auth_links,
+                            nav_buttons=auth_buttons)
 
 
 @app_views.route('/users/<user_id>', methods=['GET', 'POST'], strict_slashes=False)
-@app_views.route('/users', methods=['GET', 'POST'], strict_slashes=False)
 def user_page(user_id=None):
     """
     ----------------------------
@@ -40,6 +57,9 @@ def user_page(user_id=None):
         if not user:
             return redirect('./auth/login.html')
         if user_id == user.id:
+            """
+            user is visiting their own profile page
+            """
             user_dict = user.to_json()
             return render_template('./profile.html', auth_user=user_dict)
         else:
@@ -47,6 +67,9 @@ def user_page(user_id=None):
             user = User.search({'id': user_id})
             if not user:
                 abort(404)
+            """
+            user is visiting the profile page of someone else
+            """
             user_dict = user[0].to_json()
             return render_template('./profile.html', pub_user=user_dict)
     elif request.method == 'POST':
@@ -99,7 +122,7 @@ def register():
         if not type(user) == User or not validate_email(email):
             return render_template('./auth/register.html', msg=user)
         session_id = auth.create_session(user.id)
-        response = make_response(render_template('./profile.html', user=user))
+        response = make_response(render_template('./profile.html', auth_user=user))
         response.set_cookie('activeUser', session_id)
         return response
 
@@ -124,8 +147,9 @@ def login():
         user_or_error = auth.validate_user(email, pwd)
         if not type(user_or_error) == User:
             return render_template('./auth/login.html', msg=user_or_error)
-        session_id = auth.create_session(user_or_error.id)
-        response = make_response(render_template('./profile.html', auth_user=user_or_error.to_json()))
+        user = user_or_error
+        session_id = auth.create_session(user.id)
+        response = make_response(render_template('./profile.html', auth_user=user.to_json(), profile_url=user.profile_url))
         response.set_cookie('activeUser', session_id)
         return response
         
@@ -138,12 +162,12 @@ def logout():
     -----------------------------
     -> Return: Public landing page.
     """
-    response = 'Logged out.'
+    msq = 'Logged out.'
     user = get_user_from_session(request)
     if not user:
         return redirect('./auth/login.html')
     auth.destroy_session(request)
-    return render_template('./index.html', msg=response)
+    return redirect('/')
 
 
 @app_views.route('/reset_password', methods=['GET', 'POST'], strict_slashes=False)

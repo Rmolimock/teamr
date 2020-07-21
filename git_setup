@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo git config --global user.email "495@holbertonschool.com"
+sudo git config --global user.name "Rmolimock"
