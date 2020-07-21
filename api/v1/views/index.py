@@ -6,6 +6,7 @@ from flask import jsonify, abort, render_template, request, redirect, make_respo
 from api.v1.views import app_views
 from api.v1.views.auth.auth import Auth
 from models import User
+from models.nav_link import *
 
 
 auth = Auth()
@@ -18,30 +19,23 @@ def home():
     -----------------------------
     -> Return: Public landing page.
     """
-    from models import profile, logout, login, register
-    pub_buttons = [register, login]
     users = User.search()
     session = request.cookies.get('activeUser')
     user = get_user_from_session(request)
     if not user:
         # public home page
-        from models import mission, about, team
-        nav_links = [mission, about, team]
         return render_template('./index.html',
                                 all_users=users,
-                                nav_links=nav_links,
-                                nav_buttons=pub_buttons)
+                                nav_links=home_pub_links,
+                                nav_buttons=home_pub_buttons)
     # if user is logged in display dashboard
-    from models import my_teams, all_teams
-    profile.url = user.profile_url
-    auth_buttons = [profile, logout]
-    auth_links = [my_teams, all_teams]
+    home_private_buttons[0].url = user.profile_url
     return render_template('./index.html',
                             all_users=users,
                             session_id=session,
                             profile_url=user.profile_url,
-                            nav_links=auth_links,
-                            nav_buttons=auth_buttons)
+                            nav_links=home_private_links,
+                            nav_buttons=home_private_buttons)
 
 
 @app_views.route('/users/<user_id>', methods=['GET', 'POST'], strict_slashes=False)
@@ -61,7 +55,10 @@ def user_page(user_id=None):
             user is visiting their own profile page
             """
             user_dict = user.to_json()
-            return render_template('./profile.html', auth_user=user_dict)
+            return render_template('./profile.html',
+                                    auth_user=user_dict,
+                                    nav_links=profile_private_links,
+                                    nav_buttons=profile_private_buttons)
         else:
             from models import User
             user = User.search({'id': user_id})
@@ -71,7 +68,10 @@ def user_page(user_id=None):
             user is visiting the profile page of someone else
             """
             user_dict = user[0].to_json()
-            return render_template('./profile.html', pub_user=user_dict)
+            return render_template('./profile.html',
+                                    pub_user=user_dict,
+                                    nav_links=profile_private_links,
+                                    nav_buttons=profile_private_buttons)
     elif request.method == 'POST':
         from models import db
         pwd1 = request.form.get('new_password1')
@@ -113,16 +113,24 @@ def register():
     from validate_email import validate_email
     from models import db
     if request.method == "GET":
-        return render_template('./auth/register.html')
+        return render_template('./auth/register.html',
+                                nav_links=register_links,
+                                nav_buttons=register_buttons)
     if request.method == "POST":
         uname = request.form.get('username')
         email = request.form.get('email')
         pwd = request.form.get('password')
         user = db.register(uname, email, pwd)
         if not type(user) == User or not validate_email(email):
-            return render_template('./auth/register.html', msg=user)
+            return render_template('./auth/register.html',
+                                    msg=user,
+                                    nav_links=register_links,
+                                    nav_buttons=register_buttons)
         session_id = auth.create_session(user.id)
-        response = make_response(render_template('./profile.html', auth_user=user))
+        response = make_response(render_template('./profile.html',
+                                                  auth_user=user,
+                                                  nav_links=profile_private_links,
+                                                  nav_buttons=profile_private_buttons))
         response.set_cookie('activeUser', session_id)
         return response
 
@@ -138,18 +146,30 @@ def login():
     from validate_email import validate_email
     # 
     if request.method == 'GET':
-        return render_template('./auth/login.html')
+        return render_template('./auth/login.html',
+                                nav_links=login_links,
+                                nav_buttons=login_buttons)
     if request.method == 'POST':
         email = request.form.get('email')
         pwd = request.form.get('password')
         if not validate_email(email):
-            return render_template('./auth/login.html', msg='Please enter a valid email address.')
+            return render_template('./auth/login.html',
+                                    msg='Please enter a valid email address.',
+                                    nav_links=login_links,
+                                    nav_buttons=login_buttons)
         user_or_error = auth.validate_user(email, pwd)
         if not type(user_or_error) == User:
-            return render_template('./auth/login.html', msg=user_or_error)
+            return render_template('./auth/login.html',
+                                    msg=user_or_error,
+                                    nav_links=login_links,
+                                    nav_buttons=login_buttons)
         user = user_or_error
         session_id = auth.create_session(user.id)
-        response = make_response(render_template('./profile.html', auth_user=user.to_json(), profile_url=user.profile_url))
+        response = make_response(render_template('./index.html',
+                                                  auth_user=user.to_json(),
+                                                  profile_url=user.profile_url,
+                                                  nav_links=home_private_links,
+                                                  nav_buttons=home_private_buttons))
         response.set_cookie('activeUser', session_id)
         return response
         
@@ -165,7 +185,9 @@ def logout():
     msq = 'Logged out.'
     user = get_user_from_session(request)
     if not user:
-        return redirect('./auth/login.html')
+        return redirect('./auth/login.html',
+                         nav_links=login_links,
+                         nav_buttons=login_buttons)
     auth.destroy_session(request)
     return redirect('/')
 
