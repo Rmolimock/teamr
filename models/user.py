@@ -2,6 +2,7 @@
 """ User class """
 
 from models.base import Base
+from models.personhood import Personhood
 
 
 
@@ -14,6 +15,9 @@ class User(Base):
         self.first_name = kwargs.get('first_name')
         self.last_name = kwargs.get('last_name')
         self.username = kwargs.get('username')
+        p = Personhood(**{'user':self.id})
+        p.save_to_db()
+        self.personhood_id = p.id
     def is_valid_password(self, pwd: str) -> bool:
         """
         ----------------------------

@@ -16,11 +16,11 @@ TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 class Auth():
     """ Authenticate requests and current users. """
     session_ids = {}
-    session_duration = 200
+    session_duration = 2000
     def __init__(self):
         """ empty init for now """
         self.id = str(uuid4())
-        self.session_duration = 200
+        self.session_duration = 2000
         self.reset_password_tokens = {}
     def create_session(self, user_id):
         """

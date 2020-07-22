@@ -26,7 +26,7 @@
 {% if debug %}
 {{ debug}}
 {% endif %}
-<form name="register" action='/register' method="post">
+<form name="register" action='/register' method="post" enctype = "multipart/form-data">
 <fieldset>
 
 	<legend>
@@ -36,15 +36,19 @@
 	<ul>
 		<li>
 			<label for="email">Email: </label>
-			<input type="email" name="email" value="">
+			<input type="email" name="email" value="" required>
 		</li>
 		<li>
 			<label for="username">Username: </label>
-			<input type="text" name="username" value="">
+			<input type="text" name="username" value="" required>
 		</li>
 		<li>
 			<label for="password">Password: </label>
-			<input type="password" name="password" value="">
+			<input type="password" name="password" value="" required>
+		</li>
+		<li>
+			<label for="pic">Profile picture:</label>
+			<input type="file" name="file">
 		</li>
 		<li>
 			<button type="submit" name="register" value="register">SUBMIT</button>

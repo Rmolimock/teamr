@@ -1,0 +1,77 @@
+<!-- inherit from base.html -->
+{% extends "base.html" %}
+
+<!-- declare subtitle -->
+{% block title %}Home{% endblock %}
+
+<!-- inherit parent header -->
+{% block head %}
+{{ super() }}
+  <!-- static files here -->
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+<!-- main content here -->
+
+
+{% if team %}
+
+
+
+
+
+
+
+
+<section class="section" id="team_header">
+
+
+    <header>
+        <h1>{{team.name}}</h1><br>
+        <p>{{team.description}}</p>
+    </header>
+    <hr>
+    <br>
+    <a href="#">Dissociate from this team.</a>
+
+    <ul>
+    {% for mod in moderators[:3] %}
+    <li>
+        <a href="{{mod.url}}">
+            <h3>{{mod.name}}</h3>
+            <img src="{{mod.profile_pic}}" alt="{{mod.name}}'s profile picture.">
+        </a>
+    </li>
+    {% endfor %}
+    </ul>
+    <br>
+
+    <ul>
+        {% for mem in members[:3] %}
+        <li>
+            <a href="{{mem.url}}">
+                <h3>{{mem.name}}</h3>
+                <img src="{{mem.profile_pic}}" alt="{{mem.name}}'s profile picture.">
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+
+</section>
+
+
+
+
+
+
+
+{% endif %}
+
+
+{% endblock %}

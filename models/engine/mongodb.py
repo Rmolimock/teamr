@@ -53,7 +53,7 @@ class DB():
         ----------------------------
         -> Return: Newly created User object or error message.
         """
-        from models.user import User
+        from models.user import User, Personhood
         is_strong = self.is_strong_password(pwd)
         if type(is_strong) == str:
             return is_strong

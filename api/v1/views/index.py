@@ -5,9 +5,19 @@ Top level API routes
 from flask import jsonify, abort, render_template, request, redirect, make_response
 from api.v1.views import app_views
 from api.v1.views.auth.auth import Auth
-from models import User
+from models import User, DATA, a, b, c, Team, Personhood
 from models.nav_link import *
+from werkzeug.utils import secure_filename
+from main import app
+import os
 
+UPLOAD_FOLDER = '/home/russellmolimock/teamr/static/images/'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 auth = Auth()
 
@@ -26,18 +36,84 @@ def home():
         # public home page
         return render_template('./index.html',
                                 all_users=users,
-                                nav_links=home_pub_links,
-                                nav_buttons=home_pub_buttons)
+                                nav_links=home_public_links,
+                                nav_buttons=home_public_buttons)
     # if user is logged in display dashboard
-    home_private_buttons[0].url = user.profile_url
+    user2 = Personhood.get(user.personhood_id)
+    print('user teams', user2.teams)
+    home_private_buttons[0].url = user.url
+    user = Personhood.get(user.personhood_id)
+    my_teams = [Team.get(team_id) for team_id in user.teams]
+    pub_teams = [team.to_json() for team in Team.search()]
     return render_template('./index.html',
+                            my_teams=my_teams,
+                            pub_teams=pub_teams,
+                            auth_user=user,
                             all_users=users,
                             session_id=session,
-                            profile_url=user.profile_url,
+                            profile_url=user.url,
                             nav_links=home_private_links,
                             nav_buttons=home_private_buttons)
 
 
+@app_views.route('/draft/team', methods=['GET', 'POST'], strict_slashes=False)
+def draft_team():
+    """
+    ----------------------------
+    Form for drafting a new team.
+    ----------------------------
+    -> Return: Redirect to the new team page.
+    """
+    if request.method == 'GET':
+        return render_template('./draft/team.html',
+                                nav_buttons=home_private_buttons)
+    if request.method == 'POST':
+        name = str(request.form.get('name'))
+        desc = str(request.form.get('desc'))
+        attrs = {'name': name}
+        team = Team.search(attrs)
+        if team:
+            return render_template('./draft/team.html',
+                                msg="Team name is already in use.",
+                                nav_buttons=home_private_buttons)
+        team = Team()
+        team.name = name
+        team.description = desc
+        user = request.current_user
+        team.members.append(user.id)
+        team.moderators.append(user.id)
+        user = Personhood.get(user.personhood_id)
+        user.teams.append(team.id)
+        user.save_to_db()
+        team.save_to_db()
+        print('user teams', user.teams)
+        return redirect(f'../teams/{team.id}')
+
+@app_views.route('/teams/<team_id>', methods=['GET', 'POST'], strict_slashes=False)
+def team_page(team_id):
+    """
+    ----------------------------
+    Page for a specific team.
+    ----------------------------
+    -> Return: Team page.
+    """
+    team = Team.get(team_id)
+    if not team:
+        return render_template('./index.html',
+                                msg="Invalid team page.",
+                                auth_user=request.current_user.to_json(),
+                                nav_buttons=profile_private_buttons)
+    moderators = [User.get(mod).to_json() for mod in team.moderators]
+    members = [User.get(mem).to_json() for mem in team.members]
+    return render_template('./team.html',
+                            auth_user=request.current_user.to_json(),
+                            nav_buttons=profile_private_buttons,
+                            team=team,
+                            moderators=moderators,
+                            members=members)
+
+
+@app_views.route('/users', methods=['GET', 'POST'], strict_slashes=False)
 @app_views.route('/users/<user_id>', methods=['GET', 'POST'], strict_slashes=False)
 def user_page(user_id=None):
     """
@@ -46,11 +122,32 @@ def user_page(user_id=None):
     ----------------------------
     -> Return: Profile.html with private fields.
     """
+    from models import User
+    print('OUT HERE')
+    if not user_id:
+        print('IN HERE')
+        users = User.search()
+        users_dict = {}
+        for each in users:
+            users_dict[each.email] = each.to_json()
+        return jsonify(users_dict)
+    print('OUT HERE2')
     if request.method == 'GET':
         user = get_user_from_session(request)
         if not user:
-            return redirect('./auth/login.html')
-        if user_id == user.id:
+            from models import User
+            user = User.search({'id': user_id})
+            if not user or len(user) == 0:
+                abort(404)
+            """
+            user is visiting the profile page of someone else
+            """
+            user_dict = user[0].to_json()
+            return render_template('./profile.html',
+                                    pub_user=user_dict,
+                                    nav_links=profile_public_links,
+                                    nav_buttons=profile_public_buttons)
+        elif user_id == user.id:
             """
             user is visiting their own profile page
             """
@@ -59,19 +156,16 @@ def user_page(user_id=None):
                                     auth_user=user_dict,
                                     nav_links=profile_private_links,
                                     nav_buttons=profile_private_buttons)
-        else:
-            from models import User
+        elif not user_id == user.id:
             user = User.search({'id': user_id})
             if not user:
-                abort(404)
-            """
-            user is visiting the profile page of someone else
-            """
-            user_dict = user[0].to_json()
+                user = []
+            else:
+                user_dict = user[0].to_json()
             return render_template('./profile.html',
                                     pub_user=user_dict,
-                                    nav_links=profile_private_links,
-                                    nav_buttons=profile_private_buttons)
+                                    nav_links=profile_public_links,
+                                    nav_buttons=profile_public_buttons)
     elif request.method == 'POST':
         from models import db
         pwd1 = request.form.get('new_password1')
@@ -114,9 +208,17 @@ def register():
     from models import db
     if request.method == "GET":
         return render_template('./auth/register.html',
-                                nav_links=register_links,
                                 nav_buttons=register_buttons)
     if request.method == "POST":
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
         uname = request.form.get('username')
         email = request.form.get('email')
         pwd = request.form.get('password')
@@ -124,14 +226,20 @@ def register():
         if not type(user) == User or not validate_email(email):
             return render_template('./auth/register.html',
                                     msg=user,
-                                    nav_links=register_links,
                                     nav_buttons=register_buttons)
         session_id = auth.create_session(user.id)
-        response = make_response(render_template('./profile.html',
+        home_private_buttons[0].url = user.url
+        response = make_response(render_template('./auth/redirect.html',
                                                   auth_user=user,
-                                                  nav_links=profile_private_links,
-                                                  nav_buttons=profile_private_buttons))
+                                                  nav_buttons=home_private_buttons))
         response.set_cookie('activeUser', session_id)
+        # save profile picture
+        if file and allowed_file(file.filename):
+            ext = secure_filename(file.filename).split('.')[-1:][0].lower()
+            filename = user.id + '.' + ext
+            file.save(os.path.join(f"{app.config['UPLOAD_FOLDER']}{user.classname.lower()}s", filename))
+            user.image += ext
+            # ----------------
         return response
 
 
@@ -147,7 +255,6 @@ def login():
     # 
     if request.method == 'GET':
         return render_template('./auth/login.html',
-                                nav_links=login_links,
                                 nav_buttons=login_buttons)
     if request.method == 'POST':
         email = request.form.get('email')
@@ -155,20 +262,17 @@ def login():
         if not validate_email(email):
             return render_template('./auth/login.html',
                                     msg='Please enter a valid email address.',
-                                    nav_links=login_links,
                                     nav_buttons=login_buttons)
         user_or_error = auth.validate_user(email, pwd)
         if not type(user_or_error) == User:
             return render_template('./auth/login.html',
                                     msg=user_or_error,
-                                    nav_links=login_links,
                                     nav_buttons=login_buttons)
         user = user_or_error
         session_id = auth.create_session(user.id)
-        response = make_response(render_template('./index.html',
+        home_private_buttons[0].url = user.url
+        response = make_response(render_template('./auth/redirect.html',
                                                   auth_user=user.to_json(),
-                                                  profile_url=user.profile_url,
-                                                  nav_links=home_private_links,
                                                   nav_buttons=home_private_buttons))
         response.set_cookie('activeUser', session_id)
         return response
@@ -185,11 +289,12 @@ def logout():
     msq = 'Logged out.'
     user = get_user_from_session(request)
     if not user:
-        return redirect('./auth/login.html',
-                         nav_links=login_links,
-                         nav_buttons=login_buttons)
+        return redirect('/login')
     auth.destroy_session(request)
-    return redirect('/')
+    response = make_response(render_template('./auth/redirect.html',
+                                              nav_buttons=home_public_buttons))
+    response.set_cookie('activeUser', 'a')
+    return response
 
 
 @app_views.route('/reset_password', methods=['GET', 'POST'], strict_slashes=False)

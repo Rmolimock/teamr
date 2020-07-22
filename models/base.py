@@ -15,6 +15,7 @@ class Base():
     def __init__(self, *args, **kwargs):
         from uuid import uuid4
         classname = self.__class__.__name__
+        self.classname = classname
         if not classname in DATA:
             DATA[classname] = {}
         if len(kwargs) != 0:
@@ -22,13 +23,18 @@ class Base():
                 if key == 'created_at' or key == 'updated_at':
                     val = datetime.strptime(val, TIMESTAMP_FORMAT)
                 if key != '__class__':
-                    setattr(self, key, val)
+                    if hasattr(val, 'to_json'):
+                        setattr(self, key, val.to_json())
+                    else:
+                        setattr(self, key, val)
         else:
             self.id = str(uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
         if not hasattr(self, 'id'):
             self.id = str(uuid4())
+        self.url = f'https://thepointistochangeit.com/{classname.lower()}s/{self.id}'
+        self.image = f'static/images/{classname.lower()}s/{self.id}.'
         DATA[classname][self.id] = self
 
     @classmethod
@@ -104,22 +110,22 @@ class Base():
         ----------------------------
         -> Return: Dictionary representation of object.
         """
-            result = {}
-            classname = str(self.__class__.__name__)
-            result['__classname__'] = classname
-            for key, value in self.__dict__.items():
-                if type(value) is datetime:
-                    result[key] = value.strftime(TIMESTAMP_FORMAT)
+        result = {}
+        classname = str(self.__class__.__name__)
+        result['__classname__'] = classname
+        for key, value in self.__dict__.items():
+            if type(value) is datetime:
+                result[key] = value.strftime(TIMESTAMP_FORMAT)
+            else:
+                if hasattr(value, 'to_json'):
+                    result[key] = value.to_json()
+                if key == '_id':
+                    result[key] = str(value)
                 else:
-                    if hasattr(value, 'to_json'):
-                        result[key] = value.to_json()
-                    if key == '_id':
-                        result[key] = str(value)
-                    else:
-                        if key == 'to_json':
-                            continue
-                        result[key] = value
-            return result
+                    if key == 'to_json':
+                        continue
+                    result[key] = value
+        return result
 
     def save_to_db(self):
         """

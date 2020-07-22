@@ -11,8 +11,6 @@ from flask_cors import (CORS, cross_origin)
 import os
 from models import db
 from datetime import datetime, timedelta
-import logging
-from log_info.log_info import logger
 
 
 
@@ -34,12 +32,16 @@ auth = Auth()
 @app.before_request
 def before():
     """
-        ----------------------------
-        Check if requested route is public.
-        If not, authenticate the user.
-        ----------------------------
-        -> Return: None or abort with approriate errorhandler.
-        """
+    ----------------------------
+    Check if requested route is public.
+    If not, authenticate the user.
+    ----------------------------
+    -> Return: None or abort with approriate errorhandler.
+    """
+    from models.user import User
+    users = User.search()
+    for each in users:
+        print(each.id, each.email)
     now = datetime.now()
     if now.hour == 0:
         delete_expired_sessions()
@@ -58,7 +60,8 @@ def before():
                              '/reset_password',
                              '/reset_password/*',
                              '/static/*',
-                             '/me/*']):
+                             '/users',
+                             '/users/*']):
             return None
         session = auth.session_cookie(request)
         if not session:
@@ -67,6 +70,8 @@ def before():
         current_user = auth.current_user(session)
         if not current_user:
             abort(403)
+        from models import User
+        request.current_user = User.get(current_user)
 
 
 def delete_expired_sessions():

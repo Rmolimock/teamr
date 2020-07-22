@@ -1,0 +1,50 @@
+<!-- inherit from base.html -->
+{% extends "base.html" %}
+
+<!-- declare subtitle -->
+{% block title %}Home{% endblock %}
+
+<!-- inherit parent header -->
+{% block head %}
+{{ super() }}
+  <!-- static files here -->
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+<!-- main content here -->
+
+<a href="https://thepointistochangeit.com">home</a><br>
+        {% if msg %}
+        {{ msg }}<br>
+        {% endif %}
+        <form name="draft_team" action="/draft/team" method="POST">
+            <fieldset>
+              <legend>
+                New team
+              </legend>
+
+              <ul>
+                <li>
+                  <label for="name">Team name:</label><br>
+                  <input type="text" maxlength="33" name="name" value="" required>
+                </li>
+                <li>
+                  <label for="desc">Short description:</label><br>
+                  <textarea name="desc" required rows="9" cols="33" name="comment" maxlength="333" style="resize:none;">
+									</textarea>
+								</li>
+								<li>
+									<input type="submit" value="Create!">
+								</li>
+              </ul>
+
+            </fieldset>
+          </form>
+
+
+{% endblock %}

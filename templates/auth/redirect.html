@@ -1,0 +1,26 @@
+<!-- inherit from base.html -->
+{% extends "base.html" %}
+
+<!-- declare subtitle -->
+{% block title %}Home{% endblock %}
+
+<!-- inherit parent header -->
+{% block head %}
+{{ super() }}
+  <!-- static files here -->
+{% endblock %}
+
+
+
+
+{% block content %}
+
+
+<!-- main content here -->
+<br>
+<a href="https://thepointistochangeit.com/">Dashboard</a><br>
+{% if auth_user %}
+<a href="https://thepointistochangeit.com/users/{{auth_user.id}}">Profile</a>
+{% endif %}
+
+{% endblock %}

@@ -3,30 +3,94 @@
 {% block head %}
 {{ super() }}
   <!-- this is where static files specific to this child template go -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles11.css') }}">
 {% endblock %}
 
 {% block content %}
 
+
+
   <!-- MAIN -->
 
-  <main>
 
+    {% if auth_user %}
+
+
+
+  <section id="myteams" class="section teams">
+    <h1>My Teams</h1>
+    <ul class="team-ul">
+
+    {% if my_teams %}
+      {% for team in my_teams %}
+        <a href="{{team.url}}">
+          <li>
+            <header>
+              <img style="height: 4rem; width: auto;" class="profile_pic" src="static/images/{{team.profile_pic}}" alt="{{team.name}}'s profile picture">
+              <h3>{{team.name}}</h3>
+            </header>
+            <p>{{ team.description }}</p>
+          </li>
+        </a>
+      {% endfor %}
+    {% endif %}
+
+      <a href="/draft/team">
+        <li>
+          <header>
+            <img class="profile_pic" src="static/images/draft_symbol.png" alt="create a team symbol">
+            Create a new team.
+          </header>
+        </li>
+      </a>
+    </ul>
+  </section>
+  <hr><br>
+
+  <section id="pubteams" class="section teams">
+    <h1>Public Teams</h1>
+    {% if pub_teams %}
+    <ul class="team-ul">
+      {% for team in pub_teams %}
+
+        <a href="{{team.url}}">
+          <li>
+            <header>
+              <img style="height: 4rem; width: auto;" class="profile_pic" src="static/images/{{team.image}}" alt="{{team.name}}'s profile picture">
+              <h3>{{team.name}}</h3>
+              <form name="request_join_team" action="https://thepointistochangeit.com/teams/{{team.id}}/request">
+                <fieldset>
+                  <legend>Request to join</legend>
+                  <input type="submit" name="request_join_team">
+                </fieldset>
+              </form>
+            </header>
+            <p>{{ team.description }}</p>
+          </li>
+        </a>
+
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+
+
+
+
+    {% else %}
     <!-- HERO SECTION -->
 
+    <div id="buffer">.</div>
     <section id="hero" class="section">
 
       <div class="row-container">
         
         <div class="row-item col-container">
+          {% if msg %}
+            <div style="color:black;display:flex;justify-content: center;background-color: aqua;">{{ msg }}</div>
+          {% endif %}
           <header>
-            <h1>
-              {% if msg %}
-                <div style="display:flex;justify-content: center;">
-                  {{ msg }}
-                </div>
-              {% endif %}
-        Site Under Development</h1>
+          <h1>Site Under Development</h1>
           </header>
           <p>
             Short description. This should only be one or two lines and get straight to the point.
@@ -37,32 +101,9 @@
     </section>
 
     <!-- MISSION SECTION -->
-
+    <div id="buffer">.</div>
     <section id="mission" class="section">
       This is where the mission statement would go.
-      {% for user in all_users %}
-        <strong>
-          <a href="{{ user.profile_url }}">{{ user.username }}</a>
-        </strong></br>
-        email: 
-        {{ user.email }}</br>
-        password: 
-        {{ user.password }}</br>
-        created at: 
-        {{ user.created_at }}</br>
-        updated at: 
-        {{ user.updated_at }}</br>
-        user id: 
-        {{ user.id }}<br>
-      {% endfor %}
-      <hr>
-
-
-
-
-      
-  
-
     </section>
 
     <!-- ABOUT SECTION -->
@@ -72,48 +113,31 @@
     </section>
 
     <!-- TEAM SECTION -->
-
+    {% if team_members %}
+    <div id="buffer">.</div>
     <section id="team" class="section">
       <header>
         <h1>Meet the Team</h1>
       </header>
       <div id="team-bios" class="row-container bios-container">
-        
-        <div class="row-item bio">
-          {% if team_member_1 %}
-          <img src="/static/images/team_member_1.jpg" alt="A photo of {{team_member_1}}" id="team_member_1">
-          {% endif %}
-          <hgroup class="member-info">
-            <h1>Member Name</h1>
-            <h2>Member Role</h2>
-          </hgroup>
-        </div>
 
+        {% for member in team_members %}
         <div class="row-item bio">
-          {% if team_member_2 %}
-          <img src="/static/images/team_member_2.jpg" alt="A photo of {{team_member_2}}" id="team_member_2">
-          {% endif %}
+          <img class="profile_pic" src="https://thepointistochangeit.com/static/images/{{member.image}}" alt="A photo of {{member.name}}">
           <hgroup class="member-info">
-            <h1>Member Name</h1>
-            <h2>Member Role</h2>
+            <h1>{{ member.name }}</h1>
+            <h2> {{ member.role }}</h2>
           </hgroup>
         </div>
-
-        <div class="row-item bio">
-          {% if team_member_3 %}
-          <img src="/static/images/team_member_3.jpg" alt="A photo of {{team_member_3}}" id="team_member_3">
-          {% endif %}
-          <hgroup class="member-info">
-            <h1>Member Name</h1>
-            <h2>Member Role</h2>
-          </hgroup>
-        </div>
+        {% endfor %}
 
       </div>
-          this is some text i wrote
     </section>
+    {% endif %}
 
-  </main>
+
+    {% endif %}
+
 
 
 {% endblock %}

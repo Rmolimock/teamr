@@ -38,6 +38,7 @@
     --navbar-height: 4rem;
     --menu-width: 15rem;
     --menu-max-width: 59%;
+    --thumbnail-size: 4rem;
 
 
     
@@ -47,10 +48,21 @@
                          /* HTML *\
 =================================*/
 #buffer {
-    height: 2rem;
+    min-height: 4rem;
+    background-color: black;
+    color: black;
+    z-index: -1;
+}
+html {
+    background-color: var(--primary-dark);
 }
 body {
     background-color: var(--background-color);
+}
+main {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 [data-theme="dark"] {
     background-color: var(--primary-dark);
@@ -61,14 +73,17 @@ body {
     box-sizing: border-box;
     margin: 0px;
     padding: 0px;
-}
-* {
     margin: 0px;
     padding: 0px;
     list-style: none;
     text-decoration: none;
 }
-a, a:visited, a:focus, a:target {
+
+a, a:focus, a:target, a:visited a:active {
+    text-decoration: none;
+    color: var(--primary-dark);
+}
+[data-theme="dark"] a {
     color: var(--primary-light);
 }
 a:hover {
@@ -94,10 +109,10 @@ nav .logo img {
     position: fixed;
     /* top, right, width, and height values coorrespond to those of the
        #mobile-menu and #mobile-menu__icon :before and :after positions */
-    top: 1rem;
-    right: 1rem;
-    height: 2rem;
-    width: 2rem;
+    top: 0rem;
+    right: 0rem;
+    height: 4rem;
+    width: 4rem;
     /* must be in front of #mobile-menu__icons in order to function */
     z-index: var(--foreground);
     opacity: 0%;
@@ -145,90 +160,134 @@ nav .logo img {
 
 /* #mobile-menu__icon animation from hamburger menu to close symbol */
 #mobile-menu-checkbox:checked ~ #mobile-menu > #mobile-menu__icon {
-    transform: translateY(0) rotate(-135deg);
-    transition: 0.33s;
+	transform: translateY(0) rotate(-135deg);
+	transition: 0.33s;
 }
 #mobile-menu-checkbox:checked ~ #mobile-menu > #mobile-menu__icon::before {
-    transform: translateY(0.8rem) rotate(90deg);
+	transform: translateY(0.8rem) rotate(90deg);
 }
 #mobile-menu-checkbox:checked ~ #mobile-menu > #mobile-menu__icon::after {
-    opacity: 0%;
+	opacity: 0%;
 }
 
 /* INSIDE THE HAMBURGER MENU POPUP ON THE RIGHT SIDE */
 #nav-links {
-    /* hidden on mobile (default), visible when menu is clicked */
-    display: none;
-    flex-direction: column;
-    /* the sublists of a. links and b. signup/in are split apart */
-    justify-content: space-between;
-    align-items: center;
+	/* hidden on mobile (default), visible when menu is clicked */
+	display: none;
+	flex-direction: column;
+	/* the sublists of a. links and b. signup/in are split apart */
+	justify-content: space-between;
+	align-items: center;
 }
 #nav-links ul {
-    /* column by default for mobile */
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+	/* column by default for mobile */
+	display: flex;
+	flex-direction: column;
+	width: 100%;
 }
 #nav-links ul li {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    color: var(--primary-light);
-    font-size: var(--font-size-large);
+	display: flex;
+	align-items: center;
+	padding: 1rem;
+	color: var(--primary-light);
+	font-size: var(--font-size-large);
 }
-#signup-signin a {
-    /* padding on a instead of just signup so that signup and signin look even */
-    padding: 0.2rem;
+#nav-buttons-ul a {
+	/* padding on a instead of just signup so that signup and signin look even */
+	padding: 0.2rem;
 }
-.signup {
-    border: var(--border-light);
-    border-radius: var(--attention-border-radius);
-    box-shadow: var(--attention-shadow);
-    font-weight: var(--attention-font-weight);
+.strong_nav_button {
+	/* some links are given this class dynamically */
+	border: var(--border-light);
+	border-radius: var(--attention-border-radius);
+	box-shadow: var(--attention-shadow);
+	font-weight: var(--attention-font-weight);
 }
-.signup:hover {
-    /* invert colors on hover */
-    background-color: var(--attention-hover-background);
-    box-shadow: 0px 0px black;
-    color: var(--attention-hover-color);
-    text-decoration: none;
+.strong_nav_button:hover {
+	/* invert colors on hover */
+	background-color: var(--attention-hover-background);
+	box-shadow: 0px 0px black;
+	color: var(--attention-hover-color);
+	text-decoration: none;
 }
 
 
 /* DISPLAY LINKS WHEN MENU IS CLICKED */
 #mobile-menu-checkbox:checked ~ nav > #nav-links {
-    display: flex;
-    /* stick checkbox to the top of the screen */
-    position: fixed;
-    /* top and right align the links with the #mobile-menu */
-    top: 0;
-    right: 0;
-    /* padding-top must be >= size of navbar */
-    padding: var(--navbar-height) 1rem 1rem 1rem;
-    height: 100%;
-    width: var(--menu-width);
-    /* not too large on small screens */
-    max-width: var(--menu-max-width);
-    background-color: var(--foreground-color);
-    border-left: var(--midground-border);
-    z-index: var(--foreground);
+	display: flex;
+	/* stick checkbox to the top of the screen */
+	position: fixed;
+	/* top and right align the links with the #mobile-menu */
+	top: 0;
+	right: 0;
+	/* padding-top must be >= size of navbar */
+	padding: var(--navbar-height) 1rem 1rem 1rem;
+	height: 100%;
+	width: var(--menu-width);
+	/* not too large on small screens */
+	max-width: var(--menu-max-width);
+	background-color: var(--foreground-color);
+	border-left: var(--midground-border);
+	z-index: var(--foreground);
 }
 
 /* NAVBAR */
 nav {
-    /* navigation sticks to the top of the page */
-    position: fixed;
-    height: var(--navbar-height);
-    width: 100%;
-    /* navigation covers most elements - excluding those inside it, ex: menu-icon */
-    z-index: var(--midground);
+	/* navigation sticks to the top of the page */
+	position: fixed;
+	height: var(--navbar-height);
+	width: 100%;
+	/* navigation covers most elements - excluding those inside it, ex: menu-icon */
+	z-index: var(--midground);
 }
 
 
 
-                 /* HERO SECTION *\
+             /* UNIVERSAL STYLES *\
 =================================*/
+.profile_pic {
+    height: var(--thumbnail-size);
+    width: auto;
+}
+
+
+
+
+
+                       /* FOOTER *\
+=================================*/
+footer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+#footer__sitemap {
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: center;
+	border: var(--primary-light);
+	padding-bottom: 2rem;
+}
+#footer__sitemap  h1 {
+	font-size: var(--font-size-x-large);
+	padding: 3rem 0.5rem 0.5rem 0.5rem;
+}
+#footer__sitemap ul {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 256px;
+}
+#footer__sitemap ul li {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 0.5rem;
+	text-decoration: underline;
+}
+#Copyright {
+	text-align: center;
+}
 
 
 
@@ -263,22 +322,21 @@ nav {
     /* display logo and links in a row orientation */
     display: flex;
 }
+#nav-links ul {
+    flex-direction: row;
+    height: var(--navbar-height);
+}
+#nav-links-ul {
+    /* move links to the left in the nav */
+    justify-content: flex-start;
+}
 #nav-links {
     display: flex;
     /* navbar displays the links and signup/in ul elements as row */
     flex-direction: row;
     width: 100%;
 }
-#nav-links ul {
-    flex-direction: row;
-    height: var(--navbar-height);
-}
-#nav-ul {
-    /* move links to the left in the nav */
-    justify-content: flex-start;
-}
-#signup-signin {
-    /* move signup/in links to the right in the nav */
+#nav-buttons-ul {
     justify-content: flex-end;
 }
 
