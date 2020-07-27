@@ -16,7 +16,10 @@ from flask_login import login_required, current_user, LoginManager, login_user, 
 from models import User, db
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from models.nav_link import *
 # from api.v1.views import app_views
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+
 
 
 
@@ -65,7 +68,9 @@ def profile():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('auth/register.html')
+        register_buttons[0].url = url_for('login')
+        return render_template('auth/register.html',
+                                nav_buttons=register_buttons)
     # post request
     from validate_email import validate_email
     # get info from the registration form
@@ -75,7 +80,7 @@ def register():
     # check if the email is already in use
     existing_user = User.search({'email': email})
     if existing_user:
-        print('email in use')
+        print('Email is already in use.')
         flash('Email is already in use.')
         return redirect('/register')
     # check if the password is strong enough
@@ -85,20 +90,22 @@ def register():
             if v:
                 password_error += k
         flash(password_error)
-        return render_template('./auth/register.html')
+        return redirect('/register')
     response = bad_uploaded_file(request)
     if response:
         print('file not ok')
-        flash('Profile picture must be one of these formats: .png, .jpg, .jpeg, or .bmp')
-        return render_template('./auth/register.html')
+        return redirect('/register')
     user_info = {
                 'email': email,
                 'password': generate_password_hash(password, method='sha256'),
                 'username': username
                 }
     user = User(**user_info)
+    save_profile_picture(file, user)
     user.save_to_db()
-    return redirect(url_for('login'))
+    flash(f'Welcome {username}!')
+    login_user(user)
+    return redirect(url_for('profile'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -122,6 +129,13 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+
+
+
+
+
+
+
 """
 ----------------------------
 Helper functions.
@@ -131,14 +145,17 @@ def bad_uploaded_file(request):
     image_formats = ['png', 'jpg', 'jpeg', 'bmp']
     if 'file' not in request.files:
         print(1)
+        flash('Profile picture required.')
         return True
     file = request.files['file']
     if file.filename == '' or not '.' in file.filename:
         print(2)
+        flash('Profile picture required.')
         return True
     if file.filename.split('.')[-1:][0] not in image_formats:
         print(3)
         print(file.filename.split('.')[-1:][0])
+        flash('Profile picture must be one of these formats: .png, .jpg, .jpeg, or .bmp')
         return True
     return False
 
@@ -168,34 +185,22 @@ def password_check(password):
     password_ok = not ( length_error or digit_error or uppercase_error or lowercase_error or symbol_error )
     return (password_ok,
             {
-            'password ': 1,
-            'is too short, ' : length_error,
-            'must contain a number, ' : digit_error,
-            'must contain an uppercase letter, ' : uppercase_error,
-            'must contain a lowercase letter, ' : lowercase_error,
-            'must contain a symbol.' : symbol_error,
+            'Password must contain: ': 1,
+            'at least 8 characters, ' : length_error,
+            'a number, ' : digit_error,
+            'an uppercase letter, ' : uppercase_error,
+            'a lowercase letter, ' : lowercase_error,
+            'a symbol.' : symbol_error,
             })
-        
 
-@app.route('/register_old', methods=['GET', 'POST'])
-def register_old():
-    if request.method == 'GET':
-        print('request is get')
-        return render_template('./auth/register.html')
-    if request.method == 'POST':
-        print('request is post')
-        
-        file = request.files['file']
-        user_name = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = db.register(user_name, email, password)
-        if not type(user) == User or not 1:
-            print('error message')
-            return render_template('./auth/register.html')
-        login_user(user)
-        print('registered')
-        return render_template('./index.html')
+def save_profile_picture(file, user):
+    if file and allowed_file(file.filename):
+        ext = secure_filename(file.filename).split('.')[-1:][0].lower()
+        filename = user.id + '.' + ext
+        file.save(os.path.join(os.path.dirname(__file__) + '/../../../' + os.path.join(f"static/images/users", filename)))
+        user.image += ext
+        user.save_to_db()
+
 
 @app.route('/tokensignin', methods=['POST'], strict_slashes=False)
 def google_signin_token():
@@ -233,8 +238,20 @@ def google_signin_token():
 
 
 
-
-
+"""
+----------------------------
+Status checks
+----------------------------
+"""
+@app.route('/status', methods=['GET'], strict_slashes=False)
+def status():
+    """
+    ----------------------------
+    Check the status of the API.
+    ----------------------------
+    -> Return: Json response with status message "OK"
+    """
+    return jsonify({"status": "OK"})
 
 
 """
