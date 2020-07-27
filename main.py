@@ -16,15 +16,9 @@ from flask_login import login_required, current_user, LoginManager, login_user, 
 from models import User, db
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
-<<<<<<< HEAD
 from models.nav_link import *
 # from api.v1.views import app_views
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
-
-=======
-# from api.v1.views import app_views
->>>>>>> 258a2630e62d2286eb303e12687ccb41ff0a336c
-
 
 
 
@@ -36,7 +30,6 @@ CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 import secrets
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 print(app.secret_key)
-<<<<<<< HEAD
 
 """
 ----------------------------
@@ -69,25 +62,6 @@ def index():
 @login_required
 def profile():
     return render_template('profile.html', user=current_user)
-=======
-
-"""
-----------------------------
-Flask-login setup
-----------------------------
-"""
-login_manager = LoginManager()
-login_manager.login_view = 'login'
-login_manager.init_app(app)
-# login_manager.login_view = redirect on bad login
-@login_manager.user_loader
-def load_user(user_id):
-    """
-    Tell Flask-Login how to find a specific user
-    from the ID that is stored in the session cookie.
-    """
-    return User.get(user_id)
->>>>>>> 258a2630e62d2286eb303e12687ccb41ff0a336c
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -131,7 +105,6 @@ def register():
     login_user(user)
     return redirect(url_for('profile'))
 
-<<<<<<< HEAD
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -160,81 +133,6 @@ def logout():
 
 
 
-=======
-"""
-----------------------------
-Authentication Routes
-----------------------------
-"""
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/profile')
-@login_required
-def profile():
-    return render_template('profile.html', user=current_user)
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'GET':
-        return render_template('auth/register.html')
-    # post request
-    from validate_email import validate_email
-    # get info from the registration form
-    email = request.form.get('email')
-    password = request.form.get('password')
-    username = request.form.get('username')
-    # check if the email is already in use
-    existing_user = User.search({'email': email})
-    if existing_user:
-        print('email in use')
-        flash('Email is already in use.')
-        return redirect('/register')
-    # check if the password is strong enough
-    if not password_check(password)[0]:
-        password_error = ''
-        for k,v in password_check(password)[1].items():
-            if v:
-                password_error += k
-        flash(password_error)
-        return render_template('./auth/register.html')
-    response = bad_uploaded_file(request)
-    if response:
-        print('file not ok')
-        flash('Profile picture must be one of these formats: .png, .jpg, .jpeg, or .bmp')
-        return render_template('./auth/register.html')
-    user_info = {
-                'email': email,
-                'password': generate_password_hash(password, method='sha256'),
-                'username': username
-                }
-    user = User(**user_info)
-    user.save_to_db()
-    return redirect(url_for('login'))
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'GET':
-        return render_template('auth/login.html')
-    email = request.form.get('email')
-    username = request.form.get('username')
-    password = request.form.get('password')
-    remember = True if request.form.get('remember') else False
-    user = User.search({'email': email})
-    user = user[0] if user else None
-    if not user or not check_password_hash(user.password, password):
-        return redirect(url_for('login'))
-    login_user(user)
-    return redirect(url_for('profile'))
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
->>>>>>> 258a2630e62d2286eb303e12687ccb41ff0a336c
 
 """
 ----------------------------
@@ -245,31 +143,21 @@ def bad_uploaded_file(request):
     image_formats = ['png', 'jpg', 'jpeg', 'bmp']
     if 'file' not in request.files:
         print(1)
-<<<<<<< HEAD
         flash('Profile picture required.')
-=======
->>>>>>> 258a2630e62d2286eb303e12687ccb41ff0a336c
         return True
     file = request.files['file']
     if file.filename == '' or not '.' in file.filename:
         print(2)
-<<<<<<< HEAD
         flash('Profile picture required.')
-=======
->>>>>>> 258a2630e62d2286eb303e12687ccb41ff0a336c
         return True
     if file.filename.split('.')[-1:][0] not in image_formats:
         print(3)
         print(file.filename.split('.')[-1:][0])
-<<<<<<< HEAD
         flash('Profile picture must be one of these formats: .png, .jpg, .jpeg, or .bmp')
-=======
->>>>>>> 258a2630e62d2286eb303e12687ccb41ff0a336c
         return True
     return False
 
 def password_check(password):
-<<<<<<< HEAD
     """
     Verify the strength of 'password'
     Returns a dict indicating the incorrect criteria
@@ -362,64 +250,8 @@ def status():
     -> Return: Json response with status message "OK"
     """
     return jsonify({"status": "OK"})
-=======
-    """
-    Verify the strength of 'password'
-    Returns a dict indicating the incorrect criteria
-    A password is considered strong if:
-        8 characters length or more
-        1 digit or more
-        1 symbol or more
-        1 uppercase letter or more
-        1 lowercase letter or more
-    """
-    import re
-    # checking the length
-    length_error = len(password) < 8
-    # searching for digits
-    digit_error = re.search(r"\d", password) is None
-    # searching for uppercase
-    uppercase_error = re.search(r"[A-Z]", password) is None
-    # searching for lowercase
-    lowercase_error = re.search(r"[a-z]", password) is None
-    # searching for symbols
-    symbol_error = re.search(r"[ !#$%&'()*+,-./[\\\]^_`{|}~"+r'"]', password) is None
-    # overall result
-    password_ok = not ( length_error or digit_error or uppercase_error or lowercase_error or symbol_error )
-    return (password_ok,
-            {
-            'password ': 1,
-            'is too short, ' : length_error,
-            'must contain a number, ' : digit_error,
-            'must contain an uppercase letter, ' : uppercase_error,
-            'must contain a lowercase letter, ' : lowercase_error,
-            'must contain a symbol.' : symbol_error,
-            })
-        
->>>>>>> 258a2630e62d2286eb303e12687ccb41ff0a336c
 
-@app.route('/register_old', methods=['GET', 'POST'])
-def register_old():
-    if request.method == 'GET':
-        print('request is get')
-        return render_template('./auth/register.html')
-    if request.method == 'POST':
-        print('request is post')
-        
-        file = request.files['file']
-        user_name = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = db.register(user_name, email, password)
-        if not type(user) == User or not 1:
-            print('error message')
-            return render_template('./auth/register.html')
-        login_user(user)
-        print('registered')
-        return render_template('./index.html')
 
-<<<<<<< HEAD
-=======
 @app.route('/tokensignin', methods=['POST'], strict_slashes=False)
 def google_signin_token():
     token = request.form.getlist('idtoken')[0]
@@ -460,7 +292,6 @@ def google_signin_token():
 
 
 
->>>>>>> 258a2630e62d2286eb303e12687ccb41ff0a336c
 """
 ----------------------------
 Error responses
