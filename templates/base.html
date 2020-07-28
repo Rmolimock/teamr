@@ -8,8 +8,19 @@
   <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/x-icon">
   <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}">
   <title>ThePointIstoChangeIt | {% block title %}{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/baseg.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/rrrr.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
+  <meta name="google-signin-client_id" content="{{GOOGLE_CLIENT_ID}}">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <script>
+    function signOut() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+      console.log('User signed out.');
+      });
+    }
+  </script>
+  
   {% endblock %}
 </head>
 
@@ -28,27 +39,29 @@
     <nav data-theme="dark">
       <div class="logo">
         <a href="https://thepointistochangeit.com">
-          <img src="https://thepointistochangeit.com/static/images/thepointistochangeit.png" alt="Logo">
+          <img src="/static/images/thepointistochangeit.png" alt="Logo">
         </a>
       </div>
       <div id="nav-links" class="container-fluid col">
-        <ul id="nav-links-ul">
-          {% if nav_links %}
-            {% for nav in nav_links%}
-              <li><a href="{{ nav.url }}" class="{%if nav.classes %}{% for class in nav.classes %} {{ class }} {% endfor %}{% endif %}">{{ nav.text }}</a></li>
-            {% endfor %}
-          {% endif %}
-        </ul>
 
         <!-- SIGN UP && SIGN IN -->
-
         <ul id="nav-buttons-ul">
           {% if nav_buttons %}
             {% for nav in nav_buttons %}
-              <li><a href="{{ nav.url }}" class="{%if nav.classes %}{% for class in nav.classes %} {{ class }} {% endfor %}{% endif %}">{{ nav.text }}</a></li>
+              <li><a href="{{ nav.url }}" {%if nav.attrs %}{%for k,v in nav.attrs.items() %}{{k}}="{{v}}" {% endfor %}{% endif %} class="{%if nav.classes %}{% for class in nav.classes %} {{ class }} {% endfor %}{% endif %}">{{ nav.text }}</a></li>
             {% endfor %}
           {% endif %}
         </ul>
+
+        <!-- SAME-PAGE NAVIGATION LINKS -->
+        <ul id="nav-links-ul">
+          {% if nav_links %}
+            {% for nav in nav_links%}
+              <li><a href="" class="{%if nav.classes %}{% for class in nav.classes %} {{ class }} {% endfor %}{% endif %}">{{ nav.text }}</a></li>
+            {% endfor %}
+          {% endif %}
+        </ul>
+        
       </div>
 
     </nav>
@@ -57,11 +70,19 @@
 
   <!-- buffer ensures content doesn't start until the end of the navbar -->
   <div id="buffer">.</div>
+  
 
-  {% if msg %}
-    {{ msg }}
-  {% endif %}
   <main>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div style="color:black;display:flex;align-items: center;justify-content:center;flex-direction:column;font-size: large;background-color: aqua;min-height:2rem;">
+        {% for msg in messages %}
+          <div>{{ msg }}</div>
+        {% endfor %}
+
+      </div>
+    {% endif %}
+  {% endwith %}
   {% block content %}{% endblock %}
   </main>
 
@@ -103,7 +124,7 @@
       </ul>
       
       <ul>
-        <h1>Support</h1>
+        <h1 id="support">Support</h1>
         <li>Contact</li>
         <li>FAQ</li>
       </ul>

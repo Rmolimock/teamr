@@ -22,7 +22,7 @@
         {% if msg %}
         {{ msg }}<br>
         {% endif %}
-        <form name="draft_team" action="/draft/team" method="POST">
+        <form name="draft_team" action="/draft/team" method="POST" enctype="multipart/form-data">
             <fieldset>
               <legend>
                 New team
@@ -37,7 +37,11 @@
                   <label for="desc">Short description:</label><br>
                   <textarea name="desc" required rows="9" cols="33" name="comment" maxlength="333" style="resize:none;">
 									</textarea>
-								</li>
+                </li>
+                <li>
+                  <label for="file">Profile picture:</label>
+			            <input type="file" name="file">
+                </li>
 								<li>
 									<input type="submit" value="Create!">
 								</li>

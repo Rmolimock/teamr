@@ -8,6 +8,28 @@
 {% block head %}
 {{ super() }}
   <!-- static files here -->
+
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/styles11.css') }}">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <script>
+    function onSignIn(googleUser) {
+      var profile = googleUser.getBasicProfile();
+      var id_token = googleUser.getAuthResponse().id_token;
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/register/google');
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onload = function() {
+        window.location.href = xhr.responseURL
+      };
+      xhr.send('idtoken=' + id_token);
+    }
+  </script>
+  <meta name="google-signin-client_id" content="{{GOOGLE_CLIENT_ID}}">
+
+
+
+
+
 {% endblock %}
 
 
@@ -26,7 +48,7 @@
 {% if debug %}
 {{ debug}}
 {% endif %}
-<form name="register" action='/register' method="post" enctype = "multipart/form-data">
+<form name="register" action='/register' method="post" enctype="multipart/form-data">
 <fieldset>
 
 	<legend>
@@ -57,6 +79,9 @@
 
 </fieldset>
 </form>
+<section id="sign-in">
+	<div class="g-signin2" data-onsuccess="onSignIn">Sign in with Google</div>
+</section>
 
 
 

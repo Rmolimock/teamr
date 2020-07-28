@@ -2,8 +2,8 @@
 {% block title %}Home{% endblock %}
 {% block head %}
 {{ super() }}
-  <!-- this is where static files specific to this child template go -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles11.css') }}">
+  
+
 {% endblock %}
 
 {% block content %}
@@ -56,7 +56,7 @@
         <a href="{{team.url}}">
           <li>
             <header>
-              <img style="height: 4rem; width: auto;" class="profile_pic" src="static/images/{{team.image}}" alt="{{team.name}}'s profile picture">
+              <img class="profile_pic" src="../static/{{team.image}}" alt="{{team.name}}'s profile picture">
               <h3>{{team.name}}</h3>
               <form name="request_join_team" action="https://thepointistochangeit.com/teams/{{team.id}}/request">
                 <fieldset>
@@ -86,9 +86,7 @@
       <div class="row-container">
         
         <div class="row-item col-container">
-          {% if msg %}
-            <div style="color:black;display:flex;justify-content: center;background-color: aqua;">{{ msg }}</div>
-          {% endif %}
+
           <header>
           <h1>Site Under Development</h1>
           </header>
@@ -99,6 +97,8 @@
       </div>
 
     </section>
+
+
 
     <!-- MISSION SECTION -->
     <div id="buffer">.</div>

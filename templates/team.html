@@ -44,7 +44,8 @@
     <li>
         <a href="{{mod.url}}">
             <h3>{{mod.name}}</h3>
-            <img src="{{mod.profile_pic}}" alt="{{mod.name}}'s profile picture.">
+            <img src="/static/{{mod.image}}" alt="{{mod.name}}'s profile picture.">
+            {{mod.image}}
         </a>
     </li>
     {% endfor %}
@@ -56,7 +57,7 @@
         <li>
             <a href="{{mem.url}}">
                 <h3>{{mem.name}}</h3>
-                <img src="{{mem.profile_pic}}" alt="{{mem.name}}'s profile picture.">
+                <img src="/static/{{mem.image}}" alt="{{mem.name}}'s profile picture.">
             </a>
         </li>
         {% endfor %}
