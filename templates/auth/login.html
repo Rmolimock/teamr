@@ -8,6 +8,32 @@
 {% block head %}
 {{ super() }}
   <!-- static files here -->
+
+  <!-- this is where static files specific to this child template go -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles11.css') }}">
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <script>
+    function onSignIn(googleUser) {
+      var profile = googleUser.getBasicProfile();
+      var id_token = googleUser.getAuthResponse().id_token;
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/register/google');
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onload = function() {
+        window.location.href = xhr.responseURL
+      };
+      xhr.send('idtoken=' + id_token);
+    }
+    
+    function signOut() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+      console.log('User signed out.');
+    });
+  }
+  </script>
+  <meta name="google-signin-client_id" content="{{GOOGLE_CLIENT_ID}}">
+
 {% endblock %}
 
 
@@ -28,8 +54,8 @@
         <fieldset>
             <legend>LOGIN</legend>
             <ul>
-                <label for="email">Email: </label>
-                <li><input type="email" name="email" value="" required></li>
+                <label for="userNameOrEmail">Username or Email: </label>
+                <li><input type="text" name="userNameOrEmail" value="" required></li>
                 <label for="password">Password: </label>
                 <li><input type="password" name="password" value="" required></li>
                 <li><button type="submit" name="register" value="register">SUBMIT</button></li>
@@ -40,7 +66,12 @@
     <a href="/reset_password">Forgot password?</a>
 
 
-
+    <br>
+    <section id="sign-in">
+        <div class="g-signin2" data-onsuccess="onSignIn">Sign in with Google</div>
+        <a class="g-signin2" value="Sign Out" href="#" onclick="signOut();">Sign out</a>
+    </section>
+      {{GOOGLE_CLIENT_ID}}
 
 
   {% endblock %}
