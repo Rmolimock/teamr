@@ -39,7 +39,7 @@ Flask-login setup
 ----------------------------
 """
 login_manager = LoginManager()
-login_manager.login_view = 'login'
+login_manager.login_view = 'index'
 login_manager.init_app(app)
 # login_manager.login_view = redirect on bad login
 @login_manager.user_loader
@@ -58,22 +58,34 @@ Authentication Routes
 """
 @app.route('/')
 def index():
-    # always render index.html with GOOGLE_CLIENT_ID
-    return render_template('index.html', GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID)
+    if current_user.is_authenticated:
+        return render_template('index.html', nav_buttons=home_private_buttons)
+    return render_template('index.html', nav_buttons=home_public_buttons)
 
 @app.route('/profile')
 @login_required
 def profile():
     print(current_user.image)
     print(current_user.url)
-    return render_template('profile2.html', user=current_user, image=current_user.image)
+    pub_user = current_user
+    auth_user = None
+    if current_user.is_authenticated:
+        auth_user = current_user
+        pub_user = None
+    return render_template('profile2.html',
+                            auth_user=auth_user,
+                            pub_user=pub_user,
+                            image=current_user.image,
+                            nav_links=profile_private_links,
+                            nav_buttons=profile_private_buttons)
 
 @app.route('/register', methods=['GET', 'POST'])
 @app.route('/register/<token>', methods=['GET', 'POST'])
 def register(token=None):
     if request.method == 'GET':
         return render_template('auth/register.html',
-                                nav_buttons=register_buttons)
+                                nav_buttons=register_buttons,
+                                GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID)
     # post request
     image_url = None
     if token:
@@ -99,11 +111,11 @@ def register(token=None):
     if validate_email(username):
         flash('Username can not contain special characters.')
         print(5)
-        return redirect('/register')
+        return redirect('/')
     if not validate_email(email):
         flash('Email must be valid.')
         print(6)
-        return redirect('/register')
+        return redirect('/')
     # check if the password is strong enough
     if not password_check(password)[0] and not token:
         password_error = ''
@@ -112,13 +124,13 @@ def register(token=None):
                 password_error += k
         flash(password_error)
         print(7)
-        return redirect('/register')
+        return redirect('/')
     existing_user = User.search({'email': email})
     if existing_user:
         print('Email is already in use.')
-        flash('Email is already in use.')
         print(8)
-        return redirect('/register')
+        flash('Email is already in use.')
+        return redirect(url_for('login'))
     # check the format of profile picture
     if not image_url:
         response = bad_uploaded_file(request)
@@ -126,7 +138,7 @@ def register(token=None):
             print('file not ok')
             # flash happens in bad_uploaded_file()
             print(9)
-            return redirect('/register')
+            return redirect('/')
     user_info = {
                 'email': email,
                 'password': generate_password_hash(password, method='sha256'),
@@ -134,10 +146,10 @@ def register(token=None):
                 }
     user = User(**user_info)
     if not image_url:
-        print('imageurl:', image_url)
+        print('no image! Whaaaaaa!?')
         save_profile_picture(file, user)
     else:
-        print('no image! Whaaaaaa!?')
+        print('imageurl:', image_url)
         user.image = image_url
     print('user image set to: ', user.image)
     print('user url set to ', user.url)
@@ -167,36 +179,31 @@ def google_auth(request):
         return (True, idinfo)
 
 
-@app.route('/google_login', methods=['POST'])
-def google_login():
-    token = request.form.getlist('idtoken')[0]
-    from google.oauth2 import id_token
-    from google.auth.transport import requests
-    try:
-        idinfo = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
-        userid = idinfo['sub']
-    except ValueError:
-        # Invalid token
-        print('flase')
-        return False
-    print(idinfo)
-    if not idinfo['aud'] == GOOGLE_CLIENT_ID:
-        flash('Inauthentic Google Sign In')
-    else:
-        flash('google sign in good')
-    return redirect(url_for('register'))
-
-
 @app.route('/login', methods=['GET', 'POST'])
-def login():
+@app.route('/login/<token>', methods=['GET', 'POST'])
+def login(token=None):
     if request.method == 'GET':
         return render_template('auth/login.html',
                                 nav_buttons=login_buttons,
                                 GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID)
     # POST request
-    username_or_email = request.form.get('userNameOrEmail')
-    password = request.form.get('password')
-    remember = True if request.form.get('remember') else False
+    if token:
+        print(token)
+        guser = google_auth(request)
+        if guser[0]:
+            username_or_email = guser[1]['email']
+            password = guser[1]['sub']
+            remember = True
+            print(1)
+        else:
+            print(2)
+            return guser[1]
+    else:
+        # get info from the registration form
+        print(3)
+        username_or_email = request.form.get('userNameOrEmail')
+        password = request.form.get('password')
+        remember = True if request.form.get('remember') else False
     if validate_email(username_or_email):
         user = User.search({'email': username_or_email})
     else:
@@ -205,11 +212,11 @@ def login():
     if not user:
         flash('Incorrect email or username.')
         return redirect(url_for('login'))
-    if not check_password_hash(user.password, password):
+    if not check_password_hash(user.password, str(password)):
         flash('Incorrect password.')
         return redirect(url_for('login'))
     login_user(user)
-    return redirect(url_for('profile'), remember=remember)
+    return redirect(url_for('profile', remember=remember))
 
 
 @app.route('/logout')
